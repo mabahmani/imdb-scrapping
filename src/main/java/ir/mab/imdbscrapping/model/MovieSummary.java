@@ -4,10 +4,12 @@ public class MovieSummary {
     Integer rank;
     Double imdbRating;
     Long numberOfRating;
-    String cover;
+    String titleId;
     String title;
     String year;
+    String cover;
     String link;
+
 
     public Integer getRank() {
         return rank;
@@ -63,5 +65,13 @@ public class MovieSummary {
 
     public void setLink(String link) {
         this.link = link;
+    }
+
+    public String getTitleId() {
+        return titleId;
+    }
+
+    public void setTitleId(String titleId) {
+        this.titleId = titleId;
     }
 }
