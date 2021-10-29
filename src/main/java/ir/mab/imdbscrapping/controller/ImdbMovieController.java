@@ -30,12 +30,51 @@ public class ImdbMovieController {
     @GetMapping("/top250")
     ApiResponse<List<MovieSummary>> fetchTop250Movies() {
         List<MovieSummary> movies = new ArrayList<>();
-
         try {
             Document doc = Jsoup.connect(AppConstants.IMDB_TOP_250).get();
+            return extractTop250(movies, doc);
+        } catch (IOException e) {
+            return new ApiResponse<>(null, e.getMessage(), false);
+        }
+    }
 
+    @GetMapping("/toptv250")
+    ApiResponse<List<MovieSummary>> fetchTopTv250Movies() {
+        List<MovieSummary> movies = new ArrayList<>();
+
+        try {
+            Document doc = Jsoup.connect(AppConstants.IMDB_TOP_TV_250).get();
+            return extractTop250(movies, doc);
+        } catch (IOException e) {
+            return new ApiResponse<>(null, e.getMessage(), false);
+        }
+    }
+
+    @GetMapping("/{titleId}")
+    ApiResponse<MovieDetails> fetchMovie(@PathVariable("titleId") String titleId) {
+        MovieDetails movieDetails = new MovieDetails();
+        try {
+            Document doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/title/%s", titleId)).get();
+            movieDetails.setOverview(getMovieOverview(doc));
+            movieDetails.setVideos(getMovieVideos(doc));
+            movieDetails.setPhotos(getMoviePhotos(doc));
+            movieDetails.setTopCasts(getMovieTopCasts(doc));
+            movieDetails.setRelatedMovies(getMovieRelated(doc));
+            movieDetails.setStoryline(getMovieStoryline(doc));
+            movieDetails.setTopReview(getMovieTopReview(doc));
+            movieDetails.setDetails(getMovieDetails(doc));
+            movieDetails.setBoxOffice(getMovieBoxOffice(doc));
+            movieDetails.setTechnicalSpecs(getMovieTechnicalSpecs(doc));
+        } catch (IOException e) {
+            return new ApiResponse<>(null, e.getMessage(), false);
+        }
+
+        return new ApiResponse<>(movieDetails, null, true);
+    }
+
+    private ApiResponse<List<MovieSummary>> extractTop250(List<MovieSummary> movies, Document doc) {
+        try {
             for (Element element : doc.getElementsByClass("lister-list").get(0).getElementsByTag("tr")) {
-
 
                 try {
                     Element posterColumn = element.getElementsByClass("posterColumn").get(0);
@@ -92,32 +131,11 @@ public class ImdbMovieController {
                 }
 
             }
-            return new ApiResponse<>(movies, null, true);
-        } catch (IOException e) {
-            return new ApiResponse<>(null, e.getMessage(), false);
-        }
-    }
-
-    @GetMapping("/{titleId}")
-    ApiResponse<MovieDetails> getMovie(@PathVariable("titleId") String titleId) {
-        MovieDetails movieDetails = new MovieDetails();
-        try {
-            Document doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/title/%s", titleId)).get();
-            movieDetails.setOverview(getMovieOverview(doc));
-            movieDetails.setVideos(getMovieVideos(doc));
-            movieDetails.setPhotos(getMoviePhotos(doc));
-            movieDetails.setTopCasts(getMovieTopCasts(doc));
-            movieDetails.setRelatedMovies(getMovieRelated(doc));
-            movieDetails.setStoryline(getMovieStoryline(doc));
-            movieDetails.setTopReview(getMovieTopReview(doc));
-            movieDetails.setDetails(getMovieDetails(doc));
-            movieDetails.setBoxOffice(getMovieBoxOffice(doc));
-            movieDetails.setTechnicalSpecs(getMovieTechnicalSpecs(doc));
-        } catch (IOException e) {
-            return new ApiResponse<>(null, e.getMessage(), false);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
-        return new ApiResponse<>(movieDetails, null, true);
+        return new ApiResponse<>(movies, null, true);
     }
 
     private List<MovieDetails.TechnicalSpecs> getMovieTechnicalSpecs(Document doc) {
@@ -131,12 +149,12 @@ public class ImdbMovieController {
                     technicalSpecsItem.setTitle(element.getElementsByClass("ipc-metadata-list-item__label").text());
                     technicalSpecsItem.setSubtitle(element.getElementsByClass("ipc-metadata-list-item__list-content-item").text());
                     technicalSpecs.add(technicalSpecsItem);
-                }catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
 
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -148,22 +166,22 @@ public class ImdbMovieController {
         MovieDetails.BoxOffice boxOffice = new MovieDetails.BoxOffice();
         try {
             boxOffice.setBudget(doc.getElementsByAttributeValue("data-testid", "title-boxoffice-budget").get(0).getElementsByClass("ipc-metadata-list-item__list-content-item").text());
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         try {
             boxOffice.setGrossUsAndCanada(doc.getElementsByAttributeValue("data-testid", "title-boxoffice-grossdomestic").get(0).getElementsByClass("ipc-metadata-list-item__list-content-item").text());
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         try {
             boxOffice.setOpeningWeekendUsAndCanada(doc.getElementsByAttributeValue("data-testid", "title-boxoffice-openingweekenddomestic").get(0).getElementsByClass("ipc-metadata-list-item__list-content-item").text());
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         try {
             boxOffice.setGrossWorldwide(doc.getElementsByAttributeValue("data-testid", "title-boxoffice-cumulativeworldwidegross").get(0).getElementsByClass("ipc-metadata-list-item__list-content-item").text());
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -175,32 +193,32 @@ public class ImdbMovieController {
         MovieDetails.Details details = new MovieDetails.Details();
         try {
             details.setReleaseDate(extractDetails(doc.getElementsByAttributeValue("data-testid", "title-details-releasedate").get(0)));
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         try {
             details.setCountryOfOrigin(extractDetails(doc.getElementsByAttributeValue("data-testid", "title-details-origin").get(0)));
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         try {
             details.setOfficialSites(extractDetails(doc.getElementsByAttributeValue("data-testid", "title-details-officialsites").get(0)));
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         try {
             details.setLanguage(extractDetails(doc.getElementsByAttributeValue("data-testid", "title-details-languages").get(0)));
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         try {
             details.setFilmingLocations(extractDetails(doc.getElementsByAttributeValue("data-testid", "title-details-filminglocations").get(0)));
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         try {
             details.setProductionCompanies(extractDetails(doc.getElementsByAttributeValue("data-testid", "title-details-companies").get(0)));
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -213,27 +231,27 @@ public class ImdbMovieController {
         MovieDetails.Review review = new MovieDetails.Review();
         try {
             review.setTitle(doc.getElementsByAttributeValue("data-testid", "review-summary").text());
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         try {
             review.setReview(doc.getElementsByAttributeValue("data-testid", "review-overflow").text());
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         try {
             review.setRating(doc.getElementsByAttributeValue("data-testid", "review-featured-header").get(0).getElementsByClass("ipc-rating-star").text());
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         try {
             review.setDate(doc.getElementsByClass("ipc-inline-list__item review-date").get(0).text());
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         try {
             review.setUsername(doc.getElementsByAttributeValue("data-testid", "author-link").get(0).text());
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -420,20 +438,39 @@ public class ImdbMovieController {
         }
         try {
             Elements sMetaData = doc.getElementsByAttributeValue("data-testid", "hero-title-block__metadata").get(0).getElementsByTag("li");
-            try {
-                overview.setReleaseYear(sMetaData.get(0).getElementsByTag("a").get(0).text());
-            } catch (Exception e) {
-                e.printStackTrace();
+            if (sMetaData.size() > 3){
+                try {
+                    overview.setReleaseYear(sMetaData.get(1).getElementsByTag("a").get(0).text());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                try {
+                    overview.setParentalGuidCertificate(sMetaData.get(2).getElementsByTag("a").get(0).text());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                try {
+                    overview.setRuntime(sMetaData.get(3).text());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
-            try {
-                overview.setParentalGuidCertificate(sMetaData.get(1).getElementsByTag("a").get(0).text());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            try {
-                overview.setRuntime(sMetaData.get(2).text());
-            } catch (Exception e) {
-                e.printStackTrace();
+            else {
+                try {
+                    overview.setReleaseYear(sMetaData.get(0).getElementsByTag("a").get(0).text());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                try {
+                    overview.setParentalGuidCertificate(sMetaData.get(1).getElementsByTag("a").get(0).text());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                try {
+                    overview.setRuntime(sMetaData.get(2).text());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -491,29 +528,45 @@ public class ImdbMovieController {
             e.printStackTrace();
         }
         try {
-            Elements sDirectorsElements = doc.getElementsByAttributeValue("data-testid", "title-pc-principal-credit").get(0).getAllElements().get(2).getElementsByTag("a");
-            List<MovieDetails.Person> sDirectors = new ArrayList<>();
-            extractOverviewPersons(sDirectorsElements, sDirectors);
-            overview.setDirectors(sDirectors);
+            Elements credits = doc.getElementsByAttributeValue("data-testid", "title-pc-principal-credit");
+
+            for (Element element: credits){
+                if (element.getElementsByClass("ipc-metadata-list-item__label").text().contains("Director")){
+                    try {
+                        Elements sDirectorsElements = element.getAllElements().get(2).getElementsByTag("a");
+                        List<MovieDetails.Person> sDirectors = new ArrayList<>();
+                        extractOverviewPersons(sDirectorsElements, sDirectors);
+                        overview.setDirectors(sDirectors);
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                }
+                else if (element.getElementsByClass("ipc-metadata-list-item__label").text().contains("Writer")){
+                    try {
+                        Elements sWritersElements = element.getAllElements().get(2).getElementsByTag("a");
+                        List<MovieDetails.Person> sWriters = new ArrayList<>();
+                        extractOverviewPersons(sWritersElements, sWriters);
+                        overview.setWriters(sWriters);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                else if (element.getElementsByClass("ipc-metadata-list-item__label").text().contains("Star")){
+                    try {
+                        Elements sStarsElements = element.getAllElements().get(2).getElementsByTag("a");
+                        List<MovieDetails.Person> sStars = new ArrayList<>();
+                        extractOverviewPersons(sStarsElements, sStars);
+                        overview.setStars(sStars);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
-        try {
-            Elements sWritersElements = doc.getElementsByAttributeValue("data-testid", "title-pc-principal-credit").get(1).getAllElements().get(2).getElementsByTag("a");
-            List<MovieDetails.Person> sWriters = new ArrayList<>();
-            extractOverviewPersons(sWritersElements, sWriters);
-            overview.setWriters(sWriters);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
-            Elements sStarsElements = doc.getElementsByAttributeValue("data-testid", "title-pc-principal-credit").get(2).getAllElements().get(2).getElementsByTag("a");
-            List<MovieDetails.Person> sStars = new ArrayList<>();
-            extractOverviewPersons(sStarsElements, sStars);
-            overview.setStars(sStars);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+
 
         return overview;
     }
