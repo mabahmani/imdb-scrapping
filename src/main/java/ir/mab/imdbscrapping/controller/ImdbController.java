@@ -2,17 +2,24 @@ package ir.mab.imdbscrapping.controller;
 
 import ir.mab.imdbscrapping.model.ApiResponse;
 import ir.mab.imdbscrapping.model.Home;
+import ir.mab.imdbscrapping.model.HomeGraphQl;
 import ir.mab.imdbscrapping.util.AppConstants;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -50,6 +57,258 @@ public class ImdbController {
 
         return new ApiResponse<>(home, null, true);
     }
+    @GetMapping("/home/graphql")
+    ApiResponse<HomeGraphQl> fetchHomeGraphql() {
+        HomeGraphQl home = new HomeGraphQl();
+
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+        HttpPost httppost = new HttpPost("https://api.graphql.imdb.com/");
+        StringEntity params = null;
+        try {
+            LocalDate currentDate = LocalDate.now();
+            String today = String.format("--%02d-%02d",currentDate.getMonthValue(),currentDate.getDayOfMonth());
+            String movieReleasingOnOrAfter = String.format("%d-%02d-%02d",currentDate.getYear(),currentDate.getMonthValue(),currentDate.getDayOfMonth());
+            String reqBody = String.format(
+                    "{\n" +
+                            "  \"operationName\": \"BatchPage_HomeMain\",\n" +
+                            "  \"query\":\"fragment TitleWatchOption on Title {  primaryWatchOption {    additionalWatchOptionsCount    __typename  }}fragment TitleCardTrailer on Title {  latestTrailer {    id    __typename  }}fragment BaseTitleCard on Title {  id  titleText {    text    __typename  }  titleType {    id    __typename  }  originalTitleText {    text    __typename  }  primaryImage {    id    width    height    url    __typename  }  releaseYear {    year    endYear    __typename  }  ratingsSummary {    aggregateRating    voteCount    __typename  }  runtime {    seconds    __typename  }  certificate {    rating    __typename  }  canRate {    isRatable    __typename  }  canHaveEpisodes}query BatchPage_HomeMain($topPicksFirst: Int!, $topPicksAfter: String, $fanPicksFirst: Int!, $fanPicksAfter: ID, $inTheatersLocation: ShowtimesLocation!, $movieReleasingOnOrAfter: Date!, $movieViewerLocation: ShowtimesLocation!, $bornToday: MonthDay!, $bornTodayFirst: Int!) {  titleRecommendations(first: $topPicksFirst, after: $topPicksAfter) {    edges {      node {        refTag        title {          ...BaseTitleCard          ...TitleCardTrailer          ...TitleWatchOption          __typename        }        explanations {          title {            id            titleText {              text              __typename            }            originalTitleText {              text              __typename            }            __typename          }          __typename        }        __typename      }      __typename    }    __typename  }  fanPicksTitles(first: $fanPicksFirst, after: $fanPicksAfter) {    edges {      node {        ...BaseTitleCard        ...TitleCardTrailer        ...TitleWatchOption        __typename      }      __typename    }    refTag {      ep13nReftag      __typename    }    __typename  }  streamingTitles {    provider {      id      name {        value        __typename      }      description {        value        __typename      }      refTagFragment      __typename    }    titles(first: 25) {      edges {        node {          title {            ...BaseTitleCard            ...TitleCardTrailer            __typename          }          __typename        }        __typename      }      __typename    }    __typename  }  showtimesTitles(first: 30, location: $inTheatersLocation, queryMetadata: {sortField: SHOWTIMES_COUNT, sortOrder: DESC}) {    edges {      node {        ...BaseTitleCard        ...TitleCardTrailer        __typename      }      __typename    }    __typename  }  comingSoonMovie: comingSoon(first: 50, comingSoonType: MOVIE, releasingOnOrAfter: $movieReleasingOnOrAfter) {    edges {      node {        ...BaseTitleCard        ...TitleCardTrailer        releaseDate {          day          month          year          __typename        }        latestTrailer {          name {            value            __typename          }          runtime {            value            __typename          }          thumbnail {            height            width            url            __typename          }          __typename        }        cinemas(first: 0, request: {location: $movieViewerLocation}) {          total          __typename        }        meterRanking {          currentRank          __typename        }        __typename      }      __typename    }    __typename  }  bornToday(today: $bornToday, first: $bornTodayFirst) {    edges {      node {        id        nameText {          text          __typename        }        birth {          date          __typename        }        death {          date          __typename        }        primaryImage {          caption {            plainText            __typename          }          url          height          width          __typename        }        __typename      }      __typename    }    __typename  }}\"\n" +
+                            "\t,\n" +
+                            "  \"variables\":{\n" +
+                            "  \t\"bornToday\": \"%s\",\n" +
+                            "    \"bornTodayFirst\":30,\n" +
+                            "    \"fanPicksFirst\":30,\n" +
+                            "    \"inTheatersLocation\":{\n" +
+                            "      \"latLong\":{\n" +
+                            "      \t\"lat\":\"37.77\",\n" +
+                            "        \"long\":\"-122.41\"\n" +
+                            "      },\n" +
+                            "      \"radiusInMeters\":80467\n" +
+                            "    },\n" +
+                            "    \"movieReleasingOnOrAfter\":\"%s\",\n" +
+                            "    \"movieViewerLocation\":{\n" +
+                            "      \"latLong\":{\n" +
+                            "      \t\"lat\":\"37.77\",\n" +
+                            "        \"long\":\"-122.41\"\n" +
+                            "      },\n" +
+                            "      \"radiusInMeters\":80467\n" +
+                            "    },\n" +
+                            "    \"topPicksFirst\":30\n" +
+                            "  }\n" +
+                            "}"
+                    ,today,movieReleasingOnOrAfter
+            );
+
+            params = new StringEntity(reqBody);
+            httppost.addHeader("content-type", "application/json");
+            httppost.addHeader("x-amzn-sessionid", "0");
+            httppost.setEntity(params);
+            HttpResponse response = httpClient.execute(httppost);
+            JSONObject responseJson = new JSONObject(EntityUtils.toString(response.getEntity(), "UTF-8"));
+            home.setFanPicksTitles(getFanPicksTitles(responseJson));
+            home.setStreamingTitles(getStreamingTitles(responseJson));
+            home.setComingSoonMovies(getComingSoonMovies(responseJson));
+            home.setShowTimesTitles(getShowTimesTitles(responseJson));
+            home.setBornTodayList(getBornTodayList(responseJson));
+        } catch (IOException e) {
+            return new ApiResponse<>(null,e.getMessage(),false);
+        }
+
+        return new ApiResponse<>(home,null,true);
+    }
+
+    private List<HomeGraphQl.BornToday> getBornTodayList(JSONObject responseJson) {
+        try {
+            JSONArray edges = (JSONArray) ((JSONObject)((JSONObject)responseJson.get("data")).get("bornToday")).get("edges");
+            return extractBornTodayNodes(edges);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private List<HomeGraphQl.MovieCard> getShowTimesTitles(JSONObject responseJson) {
+        try {
+            JSONArray edges = (JSONArray) ((JSONObject)((JSONObject)responseJson.get("data")).get("showtimesTitles")).get("edges");
+            return extractMovieCardNodes(edges);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private List<HomeGraphQl.MovieCard> getComingSoonMovies(JSONObject responseJson) {
+        try {
+            JSONArray edges = (JSONArray) ((JSONObject)((JSONObject)responseJson.get("data")).get("comingSoonMovie")).get("edges");
+            return extractMovieCardNodes(edges);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private List<HomeGraphQl.StreamProvider> getStreamingTitles(JSONObject responseJson) {
+        List<HomeGraphQl.StreamProvider> list = new ArrayList<>();
+        try {
+            JSONArray streamingTitles = (JSONArray) ((JSONObject)responseJson.get("data")).get("streamingTitles");
+            for (Object o : streamingTitles){
+                try {
+                    JSONObject streamingTitle = (JSONObject) o;
+                    HomeGraphQl.StreamProvider streamProvider = new HomeGraphQl.StreamProvider();
+                    try {
+                        streamProvider.setName(((JSONObject)((JSONObject)streamingTitle.get("provider")).get("name")).get("value").toString());
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    try {
+                        streamProvider.setTitles(extractMovieCardNodes((JSONArray) ((JSONObject) streamingTitle.get("titles")).get("edges")));
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    list.add(streamProvider);
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    private List<HomeGraphQl.MovieCard> getFanPicksTitles(JSONObject responseJson) {
+        try {
+            JSONArray edges = (JSONArray) ((JSONObject)((JSONObject)responseJson.get("data")).get("fanPicksTitles")).get("edges");
+            return extractMovieCardNodes(edges);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private List<HomeGraphQl.MovieCard> extractMovieCardNodes(JSONArray edges){
+        List<HomeGraphQl.MovieCard> list = new ArrayList<>();
+
+        for (Object o: edges){
+            try {
+                HomeGraphQl.MovieCard movieCard = new HomeGraphQl.MovieCard();
+
+                JSONObject node = (JSONObject) ((JSONObject) o).get("node");
+
+                if (!node.isNull("title"))
+                    node = (JSONObject) node.get("title");
+
+                try {
+                    movieCard.setTitleId(node.get("id").toString());
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+                try {
+                    movieCard.setTitle(((JSONObject)node.get("titleText")).get("text").toString());
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+                try {
+                    movieCard.setCover(((JSONObject)node.get("primaryImage")).get("url").toString());
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+                try {
+                    movieCard.setReleaseYear(((JSONObject)node.get("releaseYear")).get("year").toString());
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+                try {
+                    movieCard.setRate(Float.valueOf(((JSONObject)node.get("ratingsSummary")).get("aggregateRating").toString()));
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+                try {
+                    movieCard.setVoteCount(Integer.valueOf(((JSONObject)node.get("ratingsSummary")).get("voteCount").toString()));
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+                try {
+                    movieCard.setRuntime(Integer.valueOf(((JSONObject)node.get("runtime")).get("seconds").toString()));
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+                try {
+                    movieCard.setCertificate(((JSONObject)node.get("certificate")).get("rating").toString());
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+                try {
+                    movieCard.setVideoId(((JSONObject)node.get("latestTrailer")).get("id").toString());
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+                try {
+                    if (!node.isNull("releaseDate")){
+                        movieCard.setReleaseDay(((JSONObject)node.get("releaseDate")).get("day").toString());
+                        movieCard.setReleaseMonth(((JSONObject)node.get("releaseDate")).get("month").toString());
+                    }
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+
+                list.add(movieCard);
+
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+
+        return list;
+    }
+
+
+    private List<HomeGraphQl.BornToday> extractBornTodayNodes(JSONArray edges) {
+        List<HomeGraphQl.BornToday> list = new ArrayList<>();
+
+        for (Object o: edges){
+            try {
+                HomeGraphQl.BornToday bornToday = new HomeGraphQl.BornToday();
+
+                JSONObject node = (JSONObject) ((JSONObject) o).get("node");
+
+                try {
+                    String death = ((JSONObject)node.get("death")).get("date").toString();
+                    bornToday.setDeath(death.equals("null")?null:death);
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+                try {
+                    bornToday.setBirth(((JSONObject)node.get("birth")).get("date").toString());
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+                try {
+                    bornToday.setImage(((JSONObject)node.get("primaryImage")).get("url").toString());
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+                try {
+                    bornToday.setNameId(node.get("id").toString());
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+                try {
+                    bornToday.setTitle(((JSONObject)node.get("nameText")).get("text").toString());
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+
+                list.add(bornToday);
+
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+
+        return list;
+    }
+
 
     private Home.BoxOffice getBoxOffice(JSONObject response) {
         Home.BoxOffice boxOffice = new Home.BoxOffice();
@@ -282,19 +541,54 @@ public class ImdbController {
 
     @GetMapping("/home1")
     String fetchHome1() {
-        JSONObject response = null;
+
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+        HttpPost httppost = new HttpPost("https://api.graphql.imdb.com/");
+        StringEntity params = null;
         try {
-            Document doc = Jsoup.connect(AppConstants.IMDB_URL).get();
-            try {
-                response = getJsonResponse(doc);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            LocalDate currentDate = LocalDate.now();
+            String today = String.format("--%02d-%02d",currentDate.getMonthValue(),currentDate.getDayOfMonth());
+            String movieReleasingOnOrAfter = String.format("%d-%02d-%02d",currentDate.getYear(),currentDate.getMonthValue(),currentDate.getDayOfMonth());
+            String reqBody = String.format(
+                    "{\n" +
+                            "  \"operationName\": \"BatchPage_HomeMain\",\n" +
+                            "  \"query\":\"fragment TitleWatchOption on Title {  primaryWatchOption {    additionalWatchOptionsCount    __typename  }}fragment TitleCardTrailer on Title {  latestTrailer {    id    __typename  }}fragment BaseTitleCard on Title {  id  titleText {    text    __typename  }  titleType {    id    __typename  }  originalTitleText {    text    __typename  }  primaryImage {    id    width    height    url    __typename  }  releaseYear {    year    endYear    __typename  }  ratingsSummary {    aggregateRating    voteCount    __typename  }  runtime {    seconds    __typename  }  certificate {    rating    __typename  }  canRate {    isRatable    __typename  }  canHaveEpisodes}query BatchPage_HomeMain($topPicksFirst: Int!, $topPicksAfter: String, $fanPicksFirst: Int!, $fanPicksAfter: ID, $inTheatersLocation: ShowtimesLocation!, $movieReleasingOnOrAfter: Date!, $movieViewerLocation: ShowtimesLocation!, $bornToday: MonthDay!, $bornTodayFirst: Int!) {  titleRecommendations(first: $topPicksFirst, after: $topPicksAfter) {    edges {      node {        refTag        title {          ...BaseTitleCard          ...TitleCardTrailer          ...TitleWatchOption          __typename        }        explanations {          title {            id            titleText {              text              __typename            }            originalTitleText {              text              __typename            }            __typename          }          __typename        }        __typename      }      __typename    }    __typename  }  fanPicksTitles(first: $fanPicksFirst, after: $fanPicksAfter) {    edges {      node {        ...BaseTitleCard        ...TitleCardTrailer        ...TitleWatchOption        __typename      }      __typename    }    refTag {      ep13nReftag      __typename    }    __typename  }  streamingTitles {    provider {      id      name {        value        __typename      }      description {        value        __typename      }      refTagFragment      __typename    }    titles(first: 25) {      edges {        node {          title {            ...BaseTitleCard            ...TitleCardTrailer            __typename          }          __typename        }        __typename      }      __typename    }    __typename  }  showtimesTitles(first: 30, location: $inTheatersLocation, queryMetadata: {sortField: SHOWTIMES_COUNT, sortOrder: DESC}) {    edges {      node {        ...BaseTitleCard        ...TitleCardTrailer        __typename      }      __typename    }    __typename  }  comingSoonMovie: comingSoon(first: 50, comingSoonType: MOVIE, releasingOnOrAfter: $movieReleasingOnOrAfter) {    edges {      node {        ...BaseTitleCard        ...TitleCardTrailer        releaseDate {          day          month          year          __typename        }        latestTrailer {          name {            value            __typename          }          runtime {            value            __typename          }          thumbnail {            height            width            url            __typename          }          __typename        }        cinemas(first: 0, request: {location: $movieViewerLocation}) {          total          __typename        }        meterRanking {          currentRank          __typename        }        __typename      }      __typename    }    __typename  }  bornToday(today: $bornToday, first: $bornTodayFirst) {    edges {      node {        id        nameText {          text          __typename        }        birth {          date          __typename        }        death {          date          __typename        }        primaryImage {          caption {            plainText            __typename          }          url          height          width          __typename        }        __typename      }      __typename    }    __typename  }}\"\n" +
+                            "\t,\n" +
+                            "  \"variables\":{\n" +
+                            "  \t\"bornToday\": \"%s\",\n" +
+                            "    \"bornTodayFirst\":30,\n" +
+                            "    \"fanPicksFirst\":30,\n" +
+                            "    \"inTheatersLocation\":{\n" +
+                            "      \"latLong\":{\n" +
+                            "      \t\"lat\":\"37.77\",\n" +
+                            "        \"long\":\"-122.41\"\n" +
+                            "      },\n" +
+                            "      \"radiusInMeters\":80467\n" +
+                            "    },\n" +
+                            "    \"movieReleasingOnOrAfter\":\"%s\",\n" +
+                            "    \"movieViewerLocation\":{\n" +
+                            "      \"latLong\":{\n" +
+                            "      \t\"lat\":\"37.77\",\n" +
+                            "        \"long\":\"-122.41\"\n" +
+                            "      },\n" +
+                            "      \"radiusInMeters\":80467\n" +
+                            "    },\n" +
+                            "    \"topPicksFirst\":30\n" +
+                            "  }\n" +
+                            "}"
+                    ,today,movieReleasingOnOrAfter
+            );
+
+            params = new StringEntity(reqBody);
+            httppost.addHeader("content-type", "application/json");
+            httppost.addHeader("x-amzn-sessionid", "0");
+            httppost.setEntity(params);
+            HttpResponse response = httpClient.execute(httppost);
+            JSONObject responseJson = new JSONObject(EntityUtils.toString(response.getEntity(), "UTF-8"));
+            return responseJson.toString();
         } catch (IOException e) {
             return null;
         }
-
-        return response.toString();
     }
 
     private List<Home.Trailer> getTrailers(JSONObject response) {
