@@ -8,5 +8,6 @@ public class AppConstants {
     public static class Api{
         public static final String BASE_URL = "/api";
         public static final String MOVIES = BASE_URL + "/movies";
+        public static final String VIDEOS = BASE_URL + "/videos";
     }
 }
