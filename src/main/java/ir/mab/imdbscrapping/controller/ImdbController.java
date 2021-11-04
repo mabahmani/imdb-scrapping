@@ -60,7 +60,7 @@ public class ImdbController {
         HomeGraphQl home = new HomeGraphQl();
 
         CloseableHttpClient httpClient = HttpClients.createDefault();
-        HttpPost httppost = new HttpPost("https://api.graphql.imdb.com/");
+        HttpPost httppost = new HttpPost(AppConstants.IMDB_URL_GRAPH_QL);
         StringEntity params = null;
         try {
             LocalDate currentDate = LocalDate.now();

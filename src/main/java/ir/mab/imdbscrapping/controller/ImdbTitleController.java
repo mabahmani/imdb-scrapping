@@ -20,8 +20,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @RestController
-@RequestMapping(path = AppConstants.Api.MOVIES)
-public class ImdbMovieController {
+@RequestMapping(path = AppConstants.Api.TITLES)
+public class ImdbTitleController {
 
     private final Pattern namePattern = Pattern.compile("nm+[0-9]+");
     private final Pattern videoPattern = Pattern.compile("vi+[0-9]+");
