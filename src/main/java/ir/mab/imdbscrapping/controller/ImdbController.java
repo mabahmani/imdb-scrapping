@@ -23,8 +23,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @RestController
 @RequestMapping(path = AppConstants.Api.BASE_URL)
@@ -38,7 +36,7 @@ public class ImdbController {
             try {
                 JSONObject response = getJsonResponse(doc);
                 home.setTrailers(getTrailers(response));
-                home.setFeaturedToday(extractFeaturedItems(response,"featured-today"));
+                home.setFeaturedToday(extractFeaturedItems(response, "featured-today"));
                 home.setImdbOriginals(extractFeaturedItems(response, "imdb-originals"));
                 home.setEditorPicks(extractFeaturedItems(response, "editors-picks"));
                 home.setBoxOffice(getBoxOffice(response));
@@ -64,8 +62,8 @@ public class ImdbController {
         StringEntity params = null;
         try {
             LocalDate currentDate = LocalDate.now();
-            String today = String.format("--%02d-%02d",currentDate.getMonthValue(),currentDate.getDayOfMonth());
-            String movieReleasingOnOrAfter = String.format("%d-%02d-%02d",currentDate.getYear(),currentDate.getMonthValue(),currentDate.getDayOfMonth());
+            String today = String.format("--%02d-%02d", currentDate.getMonthValue(), currentDate.getDayOfMonth());
+            String movieReleasingOnOrAfter = String.format("%d-%02d-%02d", currentDate.getYear(), currentDate.getMonthValue(), currentDate.getDayOfMonth());
             String reqBody = String.format(
                     "{\n" +
                             "  \"operationName\": \"BatchPage_HomeMain\",\n" +
@@ -93,7 +91,7 @@ public class ImdbController {
                             "    \"topPicksFirst\":30\n" +
                             "  }\n" +
                             "}"
-                    ,today,movieReleasingOnOrAfter
+                    , today, movieReleasingOnOrAfter
             );
 
             params = new StringEntity(reqBody);
@@ -108,17 +106,17 @@ public class ImdbController {
             home.setShowTimesTitles(getShowTimesTitles(responseJson));
             home.setBornTodayList(getBornTodayList(responseJson));
         } catch (IOException e) {
-            return new ApiResponse<>(null,e.getMessage(),false);
+            return new ApiResponse<>(null, e.getMessage(), false);
         }
 
-        return new ApiResponse<>(home,null,true);
+        return new ApiResponse<>(home, null, true);
     }
 
     private List<HomeGraphQl.BornToday> getBornTodayList(JSONObject responseJson) {
         try {
-            JSONArray edges = (JSONArray) ((JSONObject)((JSONObject)responseJson.get("data")).get("bornToday")).get("edges");
+            JSONArray edges = (JSONArray) ((JSONObject) ((JSONObject) responseJson.get("data")).get("bornToday")).get("edges");
             return extractBornTodayNodes(edges);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
@@ -126,9 +124,9 @@ public class ImdbController {
 
     private List<HomeGraphQl.MovieCard> getShowTimesTitles(JSONObject responseJson) {
         try {
-            JSONArray edges = (JSONArray) ((JSONObject)((JSONObject)responseJson.get("data")).get("showtimesTitles")).get("edges");
+            JSONArray edges = (JSONArray) ((JSONObject) ((JSONObject) responseJson.get("data")).get("showtimesTitles")).get("edges");
             return extractMovieCardNodes(edges);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
@@ -136,9 +134,9 @@ public class ImdbController {
 
     private List<HomeGraphQl.MovieCard> getComingSoonMovies(JSONObject responseJson) {
         try {
-            JSONArray edges = (JSONArray) ((JSONObject)((JSONObject)responseJson.get("data")).get("comingSoonMovie")).get("edges");
+            JSONArray edges = (JSONArray) ((JSONObject) ((JSONObject) responseJson.get("data")).get("comingSoonMovie")).get("edges");
             return extractMovieCardNodes(edges);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
@@ -147,28 +145,28 @@ public class ImdbController {
     private List<HomeGraphQl.StreamProvider> getStreamingTitles(JSONObject responseJson) {
         List<HomeGraphQl.StreamProvider> list = new ArrayList<>();
         try {
-            JSONArray streamingTitles = (JSONArray) ((JSONObject)responseJson.get("data")).get("streamingTitles");
-            for (Object o : streamingTitles){
+            JSONArray streamingTitles = (JSONArray) ((JSONObject) responseJson.get("data")).get("streamingTitles");
+            for (Object o : streamingTitles) {
                 try {
                     JSONObject streamingTitle = (JSONObject) o;
                     HomeGraphQl.StreamProvider streamProvider = new HomeGraphQl.StreamProvider();
                     try {
-                        streamProvider.setName(((JSONObject)((JSONObject)streamingTitle.get("provider")).get("name")).get("value").toString());
-                    }catch (Exception e){
+                        streamProvider.setName(((JSONObject) ((JSONObject) streamingTitle.get("provider")).get("name")).get("value").toString());
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                     try {
                         streamProvider.setTitles(extractMovieCardNodes((JSONArray) ((JSONObject) streamingTitle.get("titles")).get("edges")));
-                    }catch (Exception e){
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                     list.add(streamProvider);
-                }catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
 
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return list;
@@ -176,18 +174,18 @@ public class ImdbController {
 
     private List<HomeGraphQl.MovieCard> getFanPicksTitles(JSONObject responseJson) {
         try {
-            JSONArray edges = (JSONArray) ((JSONObject)((JSONObject)responseJson.get("data")).get("fanPicksTitles")).get("edges");
+            JSONArray edges = (JSONArray) ((JSONObject) ((JSONObject) responseJson.get("data")).get("fanPicksTitles")).get("edges");
             return extractMovieCardNodes(edges);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
     }
 
-    private List<HomeGraphQl.MovieCard> extractMovieCardNodes(JSONArray edges){
+    private List<HomeGraphQl.MovieCard> extractMovieCardNodes(JSONArray edges) {
         List<HomeGraphQl.MovieCard> list = new ArrayList<>();
 
-        for (Object o: edges){
+        for (Object o : edges) {
             try {
                 HomeGraphQl.MovieCard movieCard = new HomeGraphQl.MovieCard();
 
@@ -198,61 +196,61 @@ public class ImdbController {
 
                 try {
                     movieCard.setTitleId(node.get("id").toString());
-                }catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 try {
-                    movieCard.setTitle(((JSONObject)node.get("titleText")).get("text").toString());
-                }catch (Exception e){
+                    movieCard.setTitle(((JSONObject) node.get("titleText")).get("text").toString());
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 try {
-                    movieCard.setCover(((JSONObject)node.get("primaryImage")).get("url").toString());
-                }catch (Exception e){
+                    movieCard.setCover(((JSONObject) node.get("primaryImage")).get("url").toString());
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 try {
-                    movieCard.setReleaseYear(((JSONObject)node.get("releaseYear")).get("year").toString());
-                }catch (Exception e){
+                    movieCard.setReleaseYear(((JSONObject) node.get("releaseYear")).get("year").toString());
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 try {
-                    movieCard.setRate(Float.valueOf(((JSONObject)node.get("ratingsSummary")).get("aggregateRating").toString()));
-                }catch (Exception e){
+                    movieCard.setRate(Float.valueOf(((JSONObject) node.get("ratingsSummary")).get("aggregateRating").toString()));
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 try {
-                    movieCard.setVoteCount(Integer.valueOf(((JSONObject)node.get("ratingsSummary")).get("voteCount").toString()));
-                }catch (Exception e){
+                    movieCard.setVoteCount(Integer.valueOf(((JSONObject) node.get("ratingsSummary")).get("voteCount").toString()));
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 try {
-                    movieCard.setRuntime(Integer.valueOf(((JSONObject)node.get("runtime")).get("seconds").toString()));
-                }catch (Exception e){
+                    movieCard.setRuntime(Integer.valueOf(((JSONObject) node.get("runtime")).get("seconds").toString()));
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 try {
-                    movieCard.setCertificate(((JSONObject)node.get("certificate")).get("rating").toString());
-                }catch (Exception e){
+                    movieCard.setCertificate(((JSONObject) node.get("certificate")).get("rating").toString());
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 try {
-                    movieCard.setVideoId(((JSONObject)node.get("latestTrailer")).get("id").toString());
-                }catch (Exception e){
+                    movieCard.setVideoId(((JSONObject) node.get("latestTrailer")).get("id").toString());
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 try {
-                    if (!node.isNull("releaseDate")){
-                        movieCard.setReleaseDay(((JSONObject)node.get("releaseDate")).get("day").toString());
-                        movieCard.setReleaseMonth(((JSONObject)node.get("releaseDate")).get("month").toString());
+                    if (!node.isNull("releaseDate")) {
+                        movieCard.setReleaseDay(((JSONObject) node.get("releaseDate")).get("day").toString());
+                        movieCard.setReleaseMonth(((JSONObject) node.get("releaseDate")).get("month").toString());
                     }
-                }catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
 
                 list.add(movieCard);
 
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
@@ -263,42 +261,42 @@ public class ImdbController {
     private List<HomeGraphQl.BornToday> extractBornTodayNodes(JSONArray edges) {
         List<HomeGraphQl.BornToday> list = new ArrayList<>();
 
-        for (Object o: edges){
+        for (Object o : edges) {
             try {
                 HomeGraphQl.BornToday bornToday = new HomeGraphQl.BornToday();
 
                 JSONObject node = (JSONObject) ((JSONObject) o).get("node");
 
                 try {
-                    String death = ((JSONObject)node.get("death")).get("date").toString();
-                    bornToday.setDeath(death.equals("null")?null:death);
-                }catch (Exception e){
+                    String death = ((JSONObject) node.get("death")).get("date").toString();
+                    bornToday.setDeath(death.equals("null") ? null : death);
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 try {
-                    bornToday.setBirth(((JSONObject)node.get("birth")).get("date").toString());
-                }catch (Exception e){
+                    bornToday.setBirth(((JSONObject) node.get("birth")).get("date").toString());
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 try {
-                    bornToday.setImage(((JSONObject)node.get("primaryImage")).get("url").toString());
-                }catch (Exception e){
+                    bornToday.setImage(((JSONObject) node.get("primaryImage")).get("url").toString());
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 try {
                     bornToday.setNameId(node.get("id").toString());
-                }catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 try {
-                    bornToday.setTitle(((JSONObject)node.get("nameText")).get("text").toString());
-                }catch (Exception e){
+                    bornToday.setTitle(((JSONObject) node.get("nameText")).get("text").toString());
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
 
                 list.add(bornToday);
 
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
@@ -319,7 +317,7 @@ public class ImdbController {
             try {
                 boxOffice.setWeekendStartDate(boxOfficeWeekendChart.get("weekendStartDate").toString());
                 boxOffice.setWeekendEndDate(boxOfficeWeekendChart.get("weekendEndDate").toString());
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
 
@@ -328,7 +326,7 @@ public class ImdbController {
 
                 List<Home.BoxOffice.Data> dataList = new ArrayList<>();
 
-                for (Object object : boxOfficeWeekendChartEntries){
+                for (Object object : boxOfficeWeekendChartEntries) {
                     try {
                         JSONObject jsonObject = (JSONObject) object;
                         JSONObject weekendGross = (JSONObject) jsonObject.get("weekendGross");
@@ -340,35 +338,35 @@ public class ImdbController {
                             Home.BoxOffice.Data data = new Home.BoxOffice.Data();
                             try {
                                 data.setWeekendGross(Integer.valueOf(total.get("amount").toString()));
-                            }catch (Exception e){
+                            } catch (Exception e) {
                                 e.printStackTrace();
                             }
                             try {
                                 data.setCurrency(total.get("currency").toString());
-                            }catch (Exception e){
+                            } catch (Exception e) {
                                 e.printStackTrace();
                             }
                             try {
                                 data.setCinemas(Integer.valueOf(cinemas.get("total").toString()));
-                            }catch (Exception e){
+                            } catch (Exception e) {
                                 e.printStackTrace();
                             }
                             try {
                                 data.setTitle(titleText.get("text").toString());
-                            }catch (Exception e){
+                            } catch (Exception e) {
                                 e.printStackTrace();
                             }
                             try {
                                 data.setTitleId(title.get("id").toString());
-                            }catch (Exception e){
+                            } catch (Exception e) {
                                 e.printStackTrace();
                             }
                             dataList.add(data);
 
-                        }catch (Exception e){
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
-                    }catch (Exception e){
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
 
@@ -376,11 +374,11 @@ public class ImdbController {
 
                 boxOffice.setData(dataList);
 
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
 
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -401,7 +399,7 @@ public class ImdbController {
             try {
                 JSONArray newsObjectEdges = (JSONArray) newsObject.get("edges");
 
-                for (Object object : newsObjectEdges){
+                for (Object object : newsObjectEdges) {
                     try {
                         JSONObject jsonObject = (JSONObject) object;
                         JSONObject node = (JSONObject) jsonObject.get("node");
@@ -414,45 +412,45 @@ public class ImdbController {
 
                             try {
                                 newsModel.setDate(node.get("date").toString());
-                            }catch (Exception e){
+                            } catch (Exception e) {
                                 e.printStackTrace();
                             }
                             try {
                                 newsModel.setId(node.get("id").toString());
-                            }catch (Exception e){
+                            } catch (Exception e) {
                                 e.printStackTrace();
                             }
                             try {
                                 newsModel.setImage(image.get("url").toString());
-                            }catch (Exception e){
+                            } catch (Exception e) {
                                 e.printStackTrace();
                             }
                             try {
                                 newsModel.setTitle(articleTitle.get("plainText").toString());
-                            }catch (Exception e){
+                            } catch (Exception e) {
                                 e.printStackTrace();
                             }
                             try {
-                                newsModel.setSource(((JSONObject)source.get("homepage")).get("label").toString());
-                            }catch (Exception e){
+                                newsModel.setSource(((JSONObject) source.get("homepage")).get("label").toString());
+                            } catch (Exception e) {
                                 e.printStackTrace();
                             }
                             news.add(newsModel);
 
-                        }catch (Exception e){
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
-                    }catch (Exception e){
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
 
                 }
 
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
 
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -485,11 +483,11 @@ public class ImdbController {
                         try {
                             Iterator<String> queryTypeFlagsKeys = queryTypeFlags.keys();
 
-                            while (queryTypeFlagsKeys.hasNext()){
+                            while (queryTypeFlagsKeys.hasNext()) {
                                 String type = queryTypeFlagsKeys.next();
                                 if (type.equals("image"))
                                     featured.setImage(true);
-                                else if (type.equals("video")){
+                                else if (type.equals("video")) {
                                     featured.setVideo(true);
                                 }
                             }

@@ -1,15 +1,12 @@
 package ir.mab.imdbscrapping.controller;
 
 import ir.mab.imdbscrapping.model.ApiResponse;
+import ir.mab.imdbscrapping.model.NameBio;
 import ir.mab.imdbscrapping.model.NameDetails;
-import ir.mab.imdbscrapping.model.Video;
 import ir.mab.imdbscrapping.util.AppConstants;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -287,6 +283,118 @@ public class ImdbNameController {
         }
 
         return new ApiResponse<>(nameDetails, null, true);
+    }
+
+    @GetMapping("/{nameId}/bio")
+    ApiResponse<NameBio> fetchNameBio(@PathVariable("nameId") String nameId) {
+        NameBio nameBio = new NameBio();
+        try {
+            Document doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/name/%s/bio", nameId)).get();
+            try {
+                nameBio.setName(doc.getElementsByClass("name-subpage-header-block").get(0).getElementsByTag("div").text());
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+            try {
+                nameBio.setAvatar(generateCover(doc.getElementsByClass("name-subpage-header-block").get(0).getElementsByTag("a").get(0).getElementsByTag("img").attr("src"),0,0));
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+            try {
+                List<NameBio.TitleSubtitle> overviews = new ArrayList<>();
+                for (Element element: doc.getElementById("overviewTable").getElementsByTag("tr")){
+                    try {
+                        NameBio.TitleSubtitle overview = new NameBio.TitleSubtitle();
+                        overview.setTitle(element.getElementsByClass("label").text());
+                        overview.setSubtitle(element.getElementsByTag("td").get(1).text());
+                        overviews.add(overview);
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                }
+                nameBio.setOverview(overviews);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
+            try {
+                nameBio.setMiniBio(doc.getElementsByAttributeValue("name","mini_bio").get(0).nextElementSibling().nextElementSibling().text());
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
+            try {
+                List<NameBio.TitleSubtitle> list = new ArrayList<>();
+                for (Element element: doc.getElementById("tableFamily").getElementsByTag("tr")){
+                    try {
+                        NameBio.TitleSubtitle item = new NameBio.TitleSubtitle();
+                        item.setTitle(element.getElementsByTag("td").get(0).text());
+                        item.setSubtitle(Jsoup.parse(element.getElementsByTag("td").get(1).html().replace("<br>",",")).text());
+
+                        list.add(item);
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                }
+                nameBio.setFamily(list);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
+            try {
+                List<String> list = new ArrayList<>();
+                for (Element element: doc.getElementsByAttributeValue("name","trademark").get(0).nextElementSibling().nextElementSiblings()){
+                    if (element.hasClass("soda")){
+                        list.add(element.text());
+                    }
+                    else{
+                        break;
+                    }
+
+                }
+                nameBio.setTrademark(list);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+            try {
+                List<String> list = new ArrayList<>();
+                for (Element element: doc.getElementsByAttributeValue("name","trivia").get(0).nextElementSibling().nextElementSiblings()){
+                    if (element.hasClass("soda")){
+                        list.add(element.text());
+                    }
+                    else{
+                        break;
+                    }
+
+                }
+                nameBio.setTrivia(list);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
+            try {
+                List<NameBio.TitleSubtitle> list = new ArrayList<>();
+                for (Element element: doc.getElementById("salariesTable").getElementsByTag("tr")){
+                    try {
+                        NameBio.TitleSubtitle item = new NameBio.TitleSubtitle();
+                        item.setId(extractTitleId(element.getElementsByTag("td").get(0).getElementsByTag("a").attr("href")));
+                        item.setTitle(element.getElementsByTag("td").get(0).text());
+                        item.setSubtitle(element.getElementsByTag("td").get(1).text());
+
+                        list.add(item);
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                }
+                nameBio.setSalary(list);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        } catch (IOException e) {
+            return new ApiResponse<>(null, e.getMessage(), false);
+        }
+
+        return new ApiResponse<>(nameBio, null, true);
     }
 
     private String generateCover(String url, int width, int height) {
