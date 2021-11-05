@@ -1,12 +1,14 @@
 package ir.mab.imdbscrapping.controller;
 
 import ir.mab.imdbscrapping.model.ApiResponse;
+import ir.mab.imdbscrapping.model.NameAward;
 import ir.mab.imdbscrapping.model.NameBio;
 import ir.mab.imdbscrapping.model.NameDetails;
 import ir.mab.imdbscrapping.util.AppConstants;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,6 +25,7 @@ import java.util.regex.Pattern;
 public class ImdbNameController {
     private final Pattern imagePattern = Pattern.compile("rm+[0-9]+");
     private final Pattern titlePattern = Pattern.compile("tt+[0-9]+");
+    private final Pattern eventPattern = Pattern.compile("ev+[0-9]+");
 
     @GetMapping("/{nameId}")
     ApiResponse<NameDetails> fetchNameDetails(@PathVariable("nameId") String nameId) {
@@ -291,7 +294,7 @@ public class ImdbNameController {
         try {
             Document doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/name/%s/bio", nameId)).get();
             try {
-                nameBio.setName(doc.getElementsByClass("name-subpage-header-block").get(0).getElementsByTag("div").text());
+                nameBio.setName(doc.getElementsByClass("name-subpage-header-block").get(0).getElementsByTag("div").get(0).getElementsByTag("a").text());
             }catch (Exception e){
                 e.printStackTrace();
             }
@@ -397,6 +400,132 @@ public class ImdbNameController {
         return new ApiResponse<>(nameBio, null, true);
     }
 
+    @GetMapping("/{nameId}/awards")
+    ApiResponse<NameAward> fetchNameAwards(@PathVariable("nameId") String nameId) {
+        NameAward nameAward = new NameAward();
+        try {
+            Document doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/name/%s/awards", nameId)).get();
+            try {
+                nameAward.setName(doc.getElementsByClass("name-subpage-header-block").get(0).getElementsByTag("div").get(0).getElementsByTag("a").text());
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+            try {
+                nameAward.setAvatar(generateCover(doc.getElementsByClass("name-subpage-header-block").get(0).getElementsByTag("a").get(0).getElementsByTag("img").attr("src"),0,0));
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
+            try {
+                List<String> titles = new ArrayList<>();
+                for (Element head: doc.getElementById("main").getElementsByClass("article").get(0).getElementsByTag("h3")){
+                    titles.add(head.text());
+                }
+                titles.remove(0);
+                List<Element> awardTables = new ArrayList<>(doc.getElementById("main").getElementsByClass("article").get(0).getElementsByTag("table"));
+
+                List<NameAward.Event> events = new ArrayList<>();
+                for (int i=0; i<titles.size(); i++){
+                    try {
+                        NameAward.Event event = new NameAward.Event();
+                        event.setTitle(titles.get(i));
+                        List<NameAward.Event.Award> awards = new ArrayList<>();
+                        NameAward.Event.Award award = new NameAward.Event.Award();
+
+                        int trCount = 0;
+                        Elements trElements = awardTables.get(i).getElementsByTag("tr");
+                        for (Element tr: trElements){
+
+                            Element awardYearElement = null;
+                            Element awardOutcomeElement = null;
+                            Element awardDescriptionElement = null;
+                            try{
+                                awardYearElement = tr.getElementsByClass("award_year").get(0);
+
+                                if (trCount != 0){
+                                    awards.add(award);
+                                    award = new NameAward.Event.Award();
+                                }
+                                NameAward.Event.Award.LinkYear linkYear = new NameAward.Event.Award.LinkYear();
+                                linkYear.setId(extractEventId(awardYearElement.getElementsByTag("a").attr("href")));
+                                linkYear.setYear(awardYearElement.getElementsByTag("a").text());
+                                award.setYear(linkYear);
+
+                            }catch (Exception e){
+                                e.printStackTrace();
+                            }
+                            try{
+                                awardOutcomeElement = tr.getElementsByClass("award_outcome").get(0);
+
+                                NameAward.Event.Award.AwardOutcome awardOutcome = new NameAward.Event.Award.AwardOutcome();
+                                awardOutcome.setTitle(awardOutcomeElement.getElementsByTag("b").text());
+                                awardOutcome.setSubtitle(awardOutcomeElement.getElementsByClass("award_category").text());
+                                award.getAwardOutcomes().add(awardOutcome);
+
+                            }catch (Exception e){
+                                e.printStackTrace();
+                            }
+
+
+                            try{
+                                awardDescriptionElement = tr.getElementsByClass("award_description").get(0);
+                                NameAward.Event.Award.AwardOutcome.AwardDescription awardDescription = new NameAward.Event.Award.AwardOutcome.AwardDescription();
+                                awardDescription.setDescription(awardDescriptionElement.ownText());
+                                List<NameAward.Event.Award.AwardOutcome.AwardDescription.Title> titleList = new ArrayList<>();
+                                for (Element element : awardDescriptionElement.getElementsByTag("a")){
+                                    try{
+                                        NameAward.Event.Award.AwardOutcome.AwardDescription.Title title = new NameAward.Event.Award.AwardOutcome.AwardDescription.Title();
+                                        try{
+                                            title.setId(extractTitleId(element.attr("href")));
+                                        }catch (Exception e){
+                                            e.printStackTrace();
+                                        }
+                                        try{
+                                            title.setTitle(element.text());
+                                        }catch (Exception e){
+                                            e.printStackTrace();
+                                        }
+                                        try{
+                                            title.setTitleYear(element.nextElementSibling().text());
+                                        }catch (Exception e){
+                                            e.printStackTrace();
+                                        }
+                                        titleList.add(title);
+                                    }catch (Exception e){
+                                        e.printStackTrace();
+                                    }
+                                }
+                                awardDescription.setTitles(titleList);
+                                award.getAwardOutcomes().get(award.getAwardOutcomes().size() - 1).getAwardDescriptions().add(awardDescription);
+                            }catch (Exception e){
+                                e.printStackTrace();
+                            }
+
+
+
+                            trCount++;
+
+                            if (trCount == trElements.size())
+                                awards.add(award);
+                        }
+                        event.setAwards(awards);
+                        events.add(event);
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                }
+                nameAward.setEvents(events);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
+        } catch (IOException e) {
+            return new ApiResponse<>(null, e.getMessage(), false);
+        }
+
+        return new ApiResponse<>(nameAward, null, true);
+    }
+
     private String generateCover(String url, int width, int height) {
 
         if (url.isEmpty())
@@ -423,6 +552,14 @@ public class ImdbNameController {
 
     private String extractTitleId(String text) {
         Matcher m = titlePattern.matcher(text);
+        if (m.find())
+            return m.group();
+
+        return null;
+    }
+
+    private String extractEventId(String text) {
+        Matcher m = eventPattern.matcher(text);
         if (m.find())
             return m.group();
 
