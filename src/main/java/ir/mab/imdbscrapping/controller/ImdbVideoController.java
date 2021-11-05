@@ -2,6 +2,7 @@ package ir.mab.imdbscrapping.controller;
 
 import ir.mab.imdbscrapping.model.ApiResponse;
 import ir.mab.imdbscrapping.model.Video;
+import ir.mab.imdbscrapping.model.VideoGallery;
 import ir.mab.imdbscrapping.util.AppConstants;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -9,10 +10,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,6 +36,68 @@ public class ImdbVideoController {
         }
 
         return new ApiResponse<>(video, null, true);
+    }
+
+    @GetMapping("/{nameId}/videogallery")
+    ApiResponse<VideoGallery> fetchNameVideos(
+            @PathVariable("nameId") String nameId,
+            @RequestParam(value = "sort", required = false, defaultValue = "date") String sort,
+            @RequestParam(value = "sortDir", required = false, defaultValue = "desc") String sortDir,
+            @RequestParam(value = "page", required = false) Integer page
+    ) {
+        VideoGallery videoGallery = new VideoGallery();
+        try {
+            Document doc;
+            if (page != null){
+                doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/name/%s/videogallery?sort=%s&sortDir=%s&page=%s", nameId,sort,sortDir,page)).get();
+            }
+            else {
+                doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/name/%s/videogallery", nameId)).get();
+            }
+
+            try {
+                videoGallery.setTitle(doc.getElementsByClass("subpage_title_block").get(0).getElementsByTag("h3").text());
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+            try {
+                videoGallery.setAvatar(generateCover(doc.getElementsByClass("subpage_title_block").get(0).getElementsByTag("img").attr("src"),0,0));
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
+            try {
+                List<VideoGallery.Video> videos = new ArrayList<>();
+                for (Element element: doc.getElementsByClass("search-results").get(0).getElementsByTag("li")){
+                    VideoGallery.Video video = new VideoGallery.Video();
+                    try {
+                        video.setId(element.getElementsByTag("a").attr("data-video"));
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    try {
+                        video.setCover(generateCover(element.getElementsByTag("a").get(0).getElementsByTag("img").attr("loadLate"),400,300));
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    try {
+                        video.setTitle(element.getElementsByTag("h2").text());
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+
+                    videos.add(video);
+                }
+                videoGallery.setVideos(videos);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
+        } catch (IOException e) {
+            return new ApiResponse<>(null, e.getMessage(), false);
+        }
+
+        return new ApiResponse<>(videoGallery, null, true);
     }
 
     private void extractVideoUrls(Element element, Video video) {
@@ -86,37 +146,37 @@ public class ImdbVideoController {
                 JSONObject videoListObject = videoList.getJSONObject(keys.next());
                 JSONArray videoListArray = videoListObject.getJSONArray("videoList");
 
-                for (Object o : videoListArray){
+                for (Object o : videoListArray) {
                     JSONObject videoListItem = (JSONObject) o;
                     Video.RelatedVideo relatedVideo = new Video.RelatedVideo();
                     try {
                         relatedVideo.setVideoId(videoListItem.getJSONObject("videoId").getString("value"));
-                    }catch (Exception e){
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                     try {
                         relatedVideo.setTitle(videoListItem.getString("videoTitle"));
-                    }catch (Exception e){
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                     try {
                         relatedVideo.setDuration(videoListItem.getString("videoRuntime"));
-                    }catch (Exception e){
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                     try {
                         relatedVideo.setCover(videoListItem.getJSONObject("videoSlate").getString("source"));
-                    }catch (Exception e){
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                     try {
                         relatedVideo.setSubtitle(videoListItem.getString("relationText"));
-                    }catch (Exception e){
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                     try {
                         relatedVideo.setTitleId(videoListItem.getString("relationId"));
-                    }catch (Exception e){
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
 
@@ -281,5 +341,22 @@ public class ImdbVideoController {
 
         return result;
     }
+
+    private String generateCover(String url, int width, int height) {
+
+        if (url.isEmpty())
+            return null;
+
+        if (width == 0 || height == 0) {
+            String[] coverUrlSplits = url.split("._V1_");
+            return coverUrlSplits[0] + "._V1_.jpg";
+        }
+
+        String[] coverUrlSplits = url.split("._V1_");
+        String baseUrl = coverUrlSplits[0] + "._V1_";
+        String options = String.format("UY%s_CR%s,0,%s,%s_AL_.jpg", height, 0, 0, 0);
+        return baseUrl + options;
+    }
+
 
 }
