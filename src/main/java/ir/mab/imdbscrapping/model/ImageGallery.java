@@ -4,7 +4,43 @@ import java.util.List;
 
 public class ImageGallery {
     String title;
+    String endCursor;
+    String startCursor;
+    Boolean hasNextPage;
+    Boolean hasPreviousPage;
     List<Image> images;
+
+    public String getEndCursor() {
+        return endCursor;
+    }
+
+    public void setEndCursor(String endCursor) {
+        this.endCursor = endCursor;
+    }
+
+    public String getStartCursor() {
+        return startCursor;
+    }
+
+    public void setStartCursor(String startCursor) {
+        this.startCursor = startCursor;
+    }
+
+    public Boolean getHasNextPage() {
+        return hasNextPage;
+    }
+
+    public void setHasNextPage(Boolean hasNextPage) {
+        this.hasNextPage = hasNextPage;
+    }
+
+    public Boolean getHasPreviousPage() {
+        return hasPreviousPage;
+    }
+
+    public void setHasPreviousPage(Boolean hasPreviousPage) {
+        this.hasPreviousPage = hasPreviousPage;
+    }
 
     public List<Image> getImages() {
         return images;
