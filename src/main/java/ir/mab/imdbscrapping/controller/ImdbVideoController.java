@@ -38,7 +38,7 @@ public class ImdbVideoController {
         return new ApiResponse<>(video, null, true);
     }
 
-    @GetMapping("/{nameId}/videogallery")
+    @GetMapping("/name/{nameId}/videogallery")
     ApiResponse<VideoGallery> fetchNameVideos(
             @PathVariable("nameId") String nameId,
             @RequestParam(value = "sort", required = false, defaultValue = "date") String sort,
@@ -53,6 +53,68 @@ public class ImdbVideoController {
             }
             else {
                 doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/name/%s/videogallery", nameId)).get();
+            }
+
+            try {
+                videoGallery.setTitle(doc.getElementsByClass("subpage_title_block").get(0).getElementsByTag("h3").text());
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+            try {
+                videoGallery.setAvatar(generateCover(doc.getElementsByClass("subpage_title_block").get(0).getElementsByTag("img").attr("src"),0,0));
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
+            try {
+                List<VideoGallery.Video> videos = new ArrayList<>();
+                for (Element element: doc.getElementsByClass("search-results").get(0).getElementsByTag("li")){
+                    VideoGallery.Video video = new VideoGallery.Video();
+                    try {
+                        video.setId(element.getElementsByTag("a").attr("data-video"));
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    try {
+                        video.setCover(generateCover(element.getElementsByTag("a").get(0).getElementsByTag("img").attr("loadLate"),400,300));
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    try {
+                        video.setTitle(element.getElementsByTag("h2").text());
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+
+                    videos.add(video);
+                }
+                videoGallery.setVideos(videos);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
+        } catch (IOException e) {
+            return new ApiResponse<>(null, e.getMessage(), false);
+        }
+
+        return new ApiResponse<>(videoGallery, null, true);
+    }
+
+    @GetMapping("/title/{titleID}/videogallery")
+    ApiResponse<VideoGallery> fetchTitleVideos(
+            @PathVariable("titleID") String titleID,
+            @RequestParam(value = "sort", required = false, defaultValue = "date") String sort,
+            @RequestParam(value = "sortDir", required = false, defaultValue = "desc") String sortDir,
+            @RequestParam(value = "page", required = false) Integer page
+    ) {
+        VideoGallery videoGallery = new VideoGallery();
+        try {
+            Document doc;
+            if (page != null){
+                doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/title/%s/videogallery?sort=%s&sortDir=%s&page=%s", titleID,sort,sortDir,page)).get();
+            }
+            else {
+                doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/title/%s/videogallery", titleID)).get();
             }
 
             try {

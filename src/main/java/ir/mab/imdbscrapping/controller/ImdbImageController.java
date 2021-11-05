@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
 
 @RestController
 @RequestMapping(path = AppConstants.Api.IMAGES)
-public class ImdbImageGalleryController {
+public class ImdbImageController {
     private final Pattern imagePattern = Pattern.compile("rm+[0-9]+");
 
     @GetMapping("/list/{listId}")
@@ -35,23 +35,28 @@ public class ImdbImageGalleryController {
 
             try {
                 imageGallery.setTitle(doc.getElementsByClass("header list-name").text());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            try {
                 imageGallery.setSubtitle(doc.getElementsByClass("list-description").text());
-                try {
-                    List<ImageList.Image> images = new ArrayList<>();
-                    for (Element element : doc.getElementsByClass("media_index_thumb_list").get(0).getElementsByTag("a")) {
-                        try {
-                            ImageList.Image image = new ImageList.Image();
-                            image.setId(extractImageId(element.attr("href")));
-                            image.setUrl(generateCover(element.getElementsByTag("img").get(0).attr("src"), 512, 512));
-                            images.add(image);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
+            try {
+                List<ImageList.Image> images = new ArrayList<>();
+                for (Element element : doc.getElementsByClass("media_index_thumb_list").get(0).getElementsByTag("a")) {
+                    try {
+                        ImageList.Image image = new ImageList.Image();
+                        image.setId(extractImageId(element.attr("href")));
+                        image.setUrl(generateCover(element.getElementsByTag("img").get(0).attr("src"), 512, 512));
+                        images.add(image);
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
-                    imageGallery.setImages(images);
-                } catch (Exception e) {
-                    e.printStackTrace();
                 }
+                imageGallery.setImages(images);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -76,22 +81,78 @@ public class ImdbImageGalleryController {
 
             try {
                 imageGallery.setTitle(doc.getElementsByClass("subpage_title_block").get(0).getElementsByTag("h3").text());
-                try {
-                    List<ImageList.Image> images = new ArrayList<>();
-                    for (Element element : doc.getElementsByClass("media_index_thumb_list").get(0).getElementsByTag("a")) {
-                        try {
-                            ImageList.Image image = new ImageList.Image();
-                            image.setId(extractImageId(element.attr("href")));
-                            image.setUrl(generateCover(element.getElementsByTag("img").get(0).attr("src"), 512, 512));
-                            images.add(image);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            try {
+                imageGallery.setSubtitle(generateCover(doc.getElementsByClass("subpage_title_block").get(0).getElementsByTag("a").get(0).getElementsByTag("img").attr("src"),0,0));
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            try {
+                List<ImageList.Image> images = new ArrayList<>();
+                for (Element element : doc.getElementsByClass("media_index_thumb_list").get(0).getElementsByTag("a")) {
+                    try {
+                        ImageList.Image image = new ImageList.Image();
+                        image.setId(extractImageId(element.attr("href")));
+                        image.setUrl(generateCover(element.getElementsByTag("img").get(0).attr("src"), 512, 512));
+                        images.add(image);
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
-                    imageGallery.setImages(images);
-                } catch (Exception e) {
-                    e.printStackTrace();
                 }
+                imageGallery.setImages(images);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        } catch (IOException e) {
+            return new ApiResponse<>(null, e.getMessage(), false);
+        }
+
+        return new ApiResponse<>(imageGallery, null, true);
+    }
+
+    @GetMapping("/title/{titleId}")
+    ApiResponse<ImageList> fetchTitleImages(@PathVariable("titleId") String titleId, @RequestParam(value = "page", required = false) Integer page) {
+        ImageList imageGallery = new ImageList();
+        try {
+            Document doc = null;
+            if (page != null) {
+                doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/title/%s/mediaindex?page=%s", titleId, page)).get();
+            } else {
+                doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/title/%s/mediaindex", titleId)).get();
+            }
+
+            try {
+                imageGallery.setTitle(doc.getElementsByClass("subpage_title_block").get(0).getElementsByTag("h3").text());
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            try {
+                imageGallery.setSubtitle(generateCover(doc.getElementsByClass("subpage_title_block").get(0).getElementsByTag("a").get(0).getElementsByTag("img").attr("src"),0,0));
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            try {
+                List<ImageList.Image> images = new ArrayList<>();
+                for (Element element : doc.getElementsByClass("media_index_thumb_list").get(0).getElementsByTag("a")) {
+                    try {
+                        ImageList.Image image = new ImageList.Image();
+                        image.setId(extractImageId(element.attr("href")));
+                        image.setUrl(generateCover(element.getElementsByTag("img").get(0).attr("src"), 512, 512));
+                        images.add(image);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                imageGallery.setImages(images);
             } catch (Exception e) {
                 e.printStackTrace();
             }
