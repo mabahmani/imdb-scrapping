@@ -12,5 +12,6 @@ public class AppConstants {
         public static final String VIDEOS = BASE_URL + "/videos";
         public static final String IMAGES = BASE_URL + "/images";
         public static final String NAMES = BASE_URL + "/names";
+        public static final String NEWS = BASE_URL + "/news";
     }
 }
