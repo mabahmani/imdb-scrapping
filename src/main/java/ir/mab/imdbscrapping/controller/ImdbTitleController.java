@@ -1,6 +1,7 @@
 package ir.mab.imdbscrapping.controller;
 
 import ir.mab.imdbscrapping.model.ApiResponse;
+import ir.mab.imdbscrapping.model.FullCredits;
 import ir.mab.imdbscrapping.model.MovieDetails;
 import ir.mab.imdbscrapping.model.MovieSummary;
 import ir.mab.imdbscrapping.util.AppConstants;
@@ -70,6 +71,112 @@ public class ImdbTitleController {
         }
 
         return new ApiResponse<>(movieDetails, null, true);
+    }
+
+    @GetMapping("/{titleId}/fullcredits")
+    ApiResponse<FullCredits> fetchTitleFullCredits(@PathVariable("titleId") String titleId){
+        try {
+            Document doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/title/%s/fullcredits", titleId)).get();
+            FullCredits fullCredits = new FullCredits();
+            try {
+                fullCredits.setTitle(doc.getElementsByClass("subpage_title_block").get(0).getElementsByClass("subpage_title_block__right-column").get(0).getElementsByTag("h3").get(0).getElementsByTag("a").text());
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+            try {
+                fullCredits.setYear(doc.getElementsByClass("subpage_title_block").get(0).getElementsByClass("subpage_title_block__right-column").get(0).getElementsByTag("h3").get(0).getElementsByTag("span").text());
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+            try {
+                fullCredits.setCover(generateCover(doc.getElementsByClass("subpage_title_block").get(0).getElementsByTag("img").attr("src"),0,0));
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+            try {
+                List<FullCredits.Credit> credits = new ArrayList<>();
+                for (Element creditElement: doc.getElementById("fullcredits_content").getElementsByTag("h4")){
+                    FullCredits.Credit credit = new FullCredits.Credit();
+                    try {
+                        credit.setTitle(creditElement.text());
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    try {
+                        Element tableElement = creditElement.nextElementSibling();
+                        try {
+                            List<FullCredits.Credit.Item> items = new ArrayList<>();
+                            if (tableElement != null && tableElement.hasClass("simpleTable")){
+                                for (Element tr: tableElement.getElementsByTag("tr")){
+                                    FullCredits.Credit.Item item = new FullCredits.Credit.Item();
+
+                                    try{
+                                        item.setTitle(tr.getElementsByClass("name").text());
+                                    }catch (Exception e){
+                                        e.printStackTrace();
+                                    }
+                                    try{
+                                        item.setId(extractNameId(tr.getElementsByClass("name").get(0).getElementsByTag("a").attr("href")));
+                                    }catch (Exception e){
+                                        e.printStackTrace();
+                                    }
+                                    try{
+                                        item.setSubtitle(tr.getElementsByClass("credit").text());
+                                    }catch (Exception e){
+                                        e.printStackTrace();
+                                    }
+
+                                    items.add(item);
+                                }
+                            }
+                            else if (tableElement != null &&  tableElement.hasClass("cast_list")){
+                                for (Element tr: tableElement.getElementsByTag("tr")){
+                                    FullCredits.Credit.Item item = new FullCredits.Credit.Item();
+
+                                    try{
+                                        item.setTitle(tr.getElementsByTag("td").get(1).text());
+                                    }catch (Exception e){
+                                        e.printStackTrace();
+                                    }
+                                    try{
+                                        item.setId(extractNameId(tr.getElementsByTag("td").get(1).getElementsByTag("a").attr("href")));
+                                    }catch (Exception e){
+                                        e.printStackTrace();
+                                    }
+                                    try{
+                                        item.setSubtitle(tr.getElementsByClass("character").text());
+                                    }catch (Exception e){
+                                        e.printStackTrace();
+                                    }
+                                    try{
+                                        item.setImage(generateCover(tr.getElementsByClass("primary_photo").get(0).getElementsByTag("img").attr("loadLate"),0,0));
+                                    }catch (Exception e){
+                                        e.printStackTrace();
+                                    }
+
+                                    items.add(item);
+                                }
+
+                            }
+                            credit.setItems(items);
+
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
+
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    credits.add(credit);
+                }
+                fullCredits.setCredits(credits);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+            return new ApiResponse<>(fullCredits,null,true);
+        }catch (IOException ioException){
+            return new ApiResponse<>(null,ioException.getMessage(),false);
+        }
     }
 
     private ApiResponse<List<MovieSummary>> extractTop250(List<MovieSummary> movies, Document doc) {
