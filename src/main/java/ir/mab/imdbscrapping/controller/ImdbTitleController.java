@@ -1,9 +1,6 @@
 package ir.mab.imdbscrapping.controller;
 
-import ir.mab.imdbscrapping.model.ApiResponse;
-import ir.mab.imdbscrapping.model.FullCredits;
-import ir.mab.imdbscrapping.model.MovieDetails;
-import ir.mab.imdbscrapping.model.MovieSummary;
+import ir.mab.imdbscrapping.model.*;
 import ir.mab.imdbscrapping.util.AppConstants;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -174,6 +171,53 @@ public class ImdbTitleController {
                 e.printStackTrace();
             }
             return new ApiResponse<>(fullCredits,null,true);
+        }catch (IOException ioException){
+            return new ApiResponse<>(null,ioException.getMessage(),false);
+        }
+    }
+
+    @GetMapping("/{titleId}/technical")
+    ApiResponse<TechnicalSpecifications> fetchTechnicalSpecs(@PathVariable("titleId") String titleId){
+        try {
+            Document doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/title/%s/technical", titleId)).get();
+            TechnicalSpecifications technicalSpecifications = new TechnicalSpecifications();
+            try {
+                technicalSpecifications.setTitle(doc.getElementsByClass("subpage_title_block").get(0).getElementsByClass("subpage_title_block__right-column").get(0).getElementsByTag("h3").get(0).getElementsByTag("a").text());
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+            try {
+                technicalSpecifications.setYear(doc.getElementsByClass("subpage_title_block").get(0).getElementsByClass("subpage_title_block__right-column").get(0).getElementsByTag("h3").get(0).getElementsByTag("span").text());
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+            try {
+                technicalSpecifications.setCover(generateCover(doc.getElementsByClass("subpage_title_block").get(0).getElementsByTag("img").attr("src"),0,0));
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+            try {
+                List<TechnicalSpecifications.Spec> specs = new ArrayList<>();
+                for (Element specElement: doc.getElementById("technical_content").getElementsByClass("dataTable").get(0).getElementsByTag("tr")){
+                    TechnicalSpecifications.Spec spec = new TechnicalSpecifications.Spec();
+                    try {
+                        spec.setTitle(specElement.getElementsByTag("td").get(0).text());
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    try {
+                        spec.setSubtitle(specElement.getElementsByTag("td").get(1).text());
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+
+                    specs.add(spec);
+                }
+                technicalSpecifications.setSpecs(specs);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+            return new ApiResponse<>(technicalSpecifications,null,true);
         }catch (IOException ioException){
             return new ApiResponse<>(null,ioException.getMessage(),false);
         }
