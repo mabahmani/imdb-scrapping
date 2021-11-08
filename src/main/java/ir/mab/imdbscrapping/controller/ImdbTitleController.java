@@ -223,6 +223,75 @@ public class ImdbTitleController {
         }
     }
 
+    @GetMapping("/{titleId}/faqs")
+    ApiResponse<Faqs> fetchFaqs(@PathVariable("titleId") String titleId){
+        try {
+            Document doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/title/%s/faq", titleId)).get();
+            Faqs faqs = new Faqs();
+            try {
+                faqs.setTitle(doc.getElementsByClass("subpage_title_block").get(0).getElementsByClass("subpage_title_block__right-column").get(0).getElementsByTag("h3").get(0).getElementsByTag("a").text());
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+            try {
+                faqs.setYear(doc.getElementsByClass("subpage_title_block").get(0).getElementsByClass("subpage_title_block__right-column").get(0).getElementsByTag("h3").get(0).getElementsByTag("span").text());
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+            try {
+                faqs.setCover(generateCover(doc.getElementsByClass("subpage_title_block").get(0).getElementsByTag("img").attr("src"),0,0));
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+            try {
+                List<Faqs.Faq> faqList = new ArrayList<>();
+                for (Element faqElement: doc.getElementById("faq-no-spoilers").getElementsByTag("li")){
+                    Faqs.Faq faq = new Faqs.Faq();
+                    try {
+                        faq.setQuestion(faqElement.getElementsByClass("faq-question").text());
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    try {
+                        faq.setAnswer(faqElement.getElementsByClass("ipl-hideable-container").get(0).getElementsByTag("p").first().ownText());
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+
+                    faqList.add(faq);
+                }
+                faqs.setFaqsNoSpoiler(faqList);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+            try {
+                List<Faqs.Faq> faqList = new ArrayList<>();
+                for (Element faqElement: doc.getElementById("faq-spoilers").getElementsByTag("li")){
+                    Faqs.Faq faq = new Faqs.Faq();
+                    try {
+                        faq.setQuestion(faqElement.getElementsByClass("faq-question").text());
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    try {
+                        faq.setAnswer(faqElement.getElementsByClass("ipl-hideable-container").get(0).getElementsByTag("p").first().ownText());
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+
+                    faqList.add(faq);
+                }
+                faqs.setFaqsSpoiler(faqList);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
+            return new ApiResponse<>(faqs,null,true);
+        }catch (IOException ioException){
+            return new ApiResponse<>(null,ioException.getMessage(),false);
+        }
+    }
+
     private ApiResponse<List<MovieSummary>> extractTop250(List<MovieSummary> movies, Document doc) {
         try {
             for (Element element : doc.getElementsByClass("lister-list").get(0).getElementsByTag("tr")) {
