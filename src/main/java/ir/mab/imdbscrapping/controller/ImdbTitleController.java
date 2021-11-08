@@ -6,6 +6,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.omg.CORBA.TIMEOUT;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -287,6 +288,341 @@ public class ImdbTitleController {
             }
 
             return new ApiResponse<>(faqs,null,true);
+        }catch (IOException ioException){
+            return new ApiResponse<>(null,ioException.getMessage(),false);
+        }
+    }
+
+    @GetMapping("/{titleId}/parentalguide")
+    ApiResponse<ParentsGuide> fetchParentsGuide(@PathVariable("titleId") String titleId){
+        try {
+            Document doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/title/%s/parentalguide", titleId)).get();
+            ParentsGuide parentsGuide = new ParentsGuide();
+            try {
+                parentsGuide.setTitle(doc.getElementsByClass("subpage_title_block").get(0).getElementsByClass("subpage_title_block__right-column").get(0).getElementsByTag("h3").get(0).getElementsByTag("a").text());
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+            try {
+                parentsGuide.setYear(doc.getElementsByClass("subpage_title_block").get(0).getElementsByClass("subpage_title_block__right-column").get(0).getElementsByTag("h3").get(0).getElementsByTag("span").text());
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+            try {
+                parentsGuide.setCover(generateCover(doc.getElementsByClass("subpage_title_block").get(0).getElementsByTag("img").attr("src"),0,0));
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
+
+            try {
+                List<ParentsGuide.Guide> noSpoilGuids = new ArrayList<>();
+
+                for (Element sectionElement: doc.getElementsByClass("content-advisories-index").get(0).getElementsByTag("section")){
+                    if (sectionElement.id().equals("certificates")){
+                        try {
+                            List<ParentsGuide.Certification> certificationList = new ArrayList<>();
+                            for (Element tr : sectionElement.getElementsByTag("table").get(0).getElementsByTag("tr")) {
+                                ParentsGuide.Certification certification = new ParentsGuide.Certification();
+                                try{
+                                    certification.setTitle(tr.getElementsByTag("td").get(0).text());
+                                }catch (Exception e){
+                                    e.printStackTrace();
+                                }
+                                try{
+                                    certification.setSubtitle(tr.getElementsByTag("td").get(1).text());
+                                }catch (Exception e){
+                                    e.printStackTrace();
+                                }
+                                certificationList.add(certification);
+                            }
+                            parentsGuide.setCertifications(certificationList);
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
+                    }
+
+                    else if (sectionElement.id().equals("advisory-spoilers")) {
+                        List<ParentsGuide.Guide> spoilGuids = new ArrayList<>();
+                        try {
+                            for (Element sectionElementSpoil: sectionElement.children()){
+                                if (sectionElementSpoil.id().contains("advisory")){
+                                    ParentsGuide.Guide guide = new ParentsGuide.Guide();
+
+                                    try {
+                                        guide.setTitle(sectionElementSpoil.getElementsByClass("ipl-list-title").text());
+                                    }catch (Exception e){
+                                        e.printStackTrace();
+                                    }
+
+                                    try {
+                                        List<String> stringList = new ArrayList<>();
+                                        for (Element spoilLi: sectionElementSpoil.getElementsByTag("li")){
+                                            if (spoilLi.hasClass("advisory-severity-vote")){
+                                                try {
+                                                    guide.setTypeRate(spoilLi.getElementsByClass("ipl-status-pill").text());
+                                                }catch (Exception e){
+                                                    e.printStackTrace();
+                                                }
+                                            }
+                                            else {
+                                                stringList.add(spoilLi.text());
+                                            }
+                                        }
+                                        guide.setItems(stringList);
+                                    }catch (Exception e){
+                                        e.printStackTrace();
+                                    }
+                                    spoilGuids.add(guide);
+                                }
+
+                            }
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
+                    parentsGuide.setSpoilGuides(spoilGuids);
+                    }
+
+                    else if (sectionElement.id().contains("advisory") && !sectionElement.id().startsWith("advisory-spoiler")){
+                        try {
+                            ParentsGuide.Guide guide = new ParentsGuide.Guide();
+
+                            try {
+                                guide.setTitle(sectionElement.getElementsByClass("ipl-list-title").text());
+                            }catch (Exception e){
+                                e.printStackTrace();
+                            }
+
+                            try {
+                                List<String> stringList = new ArrayList<>();
+                                for (Element spoilLi: sectionElement.getElementsByTag("li")){
+                                    if (spoilLi.hasClass("advisory-severity-vote")){
+                                        try {
+                                            guide.setTypeRate(spoilLi.getElementsByClass("ipl-status-pill").text());
+                                        }catch (Exception e){
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                    else {
+                                        stringList.add(spoilLi.text());
+                                    }
+                                }
+                                guide.setItems(stringList);
+                            }catch (Exception e){
+                                e.printStackTrace();
+                            }
+                            noSpoilGuids.add(guide);
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                parentsGuide.setNoSpoilGuides(noSpoilGuids);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
+//            try {
+//                Element element = doc.getElementById("advisory-nudity");
+//                ParentsGuide.ParentalGuideItems.Guide guide = new ParentsGuide.ParentalGuideItems.Guide();
+//
+//                try {
+//                    guide.setTitle(element.getElementsByClass("ipl-list-title").text());
+//                }catch (Exception e){
+//                    e.printStackTrace();
+//                }
+//                try {
+//                    guide.setTypeRate(element.getElementsByClass("advisory-severity-vote").get(0).getElementsByClass("ipl-status-pill").text());
+//                }catch (Exception e){
+//                    e.printStackTrace();
+//                }
+//                try {
+//                    List<String> stringList = new ArrayList<>();
+//                    for (Element li : element.getElementsByTag("ul").get(0).getElementsByTag("li")) {
+//                        try{
+//                            if (!li.hasClass("advisory-severity-vote")){
+//                                stringList.add(li.text());
+//                            }
+//                        }catch (Exception e){
+//                            e.printStackTrace();
+//                        }
+//                    }
+//                    guide.setItems(stringList);
+//                }catch (Exception e){
+//                    e.printStackTrace();
+//                }
+//
+//                parentsGuide.setNudity(guide);
+//            }catch (Exception e){
+//                e.printStackTrace();
+//            }
+//            try {
+//                Element element = doc.getElementById("advisory-violence");
+//                ParentsGuide.ParentalGuideItems.Guide guide = new ParentsGuide.ParentalGuideItems.Guide();
+//                try {
+//                    guide.setTitle(element.getElementsByClass("ipl-list-title").text());
+//                }catch (Exception e){
+//                    e.printStackTrace();
+//                }
+//                try {
+//                    guide.setTypeRate(element.getElementsByClass("advisory-severity-vote").get(0).getElementsByClass("ipl-status-pill").text());
+//                }catch (Exception e){
+//                    e.printStackTrace();
+//                }
+//                try {
+//                    List<String> stringList = new ArrayList<>();
+//                    for (Element li : element.getElementsByTag("ul").get(0).getElementsByTag("li")) {
+//                        try{
+//                            if (!li.hasClass("advisory-severity-vote")){
+//                                stringList.add(li.text());
+//                            }
+//                        }catch (Exception e){
+//                            e.printStackTrace();
+//                        }
+//                    }
+//                    guide.setItems(stringList);
+//                }catch (Exception e){
+//                    e.printStackTrace();
+//                }
+//
+//                parentsGuide.setViolence(guide);
+//            }catch (Exception e){
+//                e.printStackTrace();
+//            }
+//            try {
+//                Element element = doc.getElementById("advisory-profanity");
+//                ParentsGuide.ParentalGuideItems.Guide guide = new ParentsGuide.ParentalGuideItems.Guide();
+//                try {
+//                    guide.setTitle(element.getElementsByClass("ipl-list-title").text());
+//                }catch (Exception e){
+//                    e.printStackTrace();
+//                }
+//                try {
+//                    guide.setTypeRate(element.getElementsByClass("advisory-severity-vote").get(0).getElementsByClass("ipl-status-pill").text());
+//                }catch (Exception e){
+//                    e.printStackTrace();
+//                }
+//                try {
+//                    List<String> stringList = new ArrayList<>();
+//                    for (Element li : element.getElementsByTag("ul").get(0).getElementsByTag("li")) {
+//                        try{
+//                            if (!li.hasClass("advisory-severity-vote")){
+//                                stringList.add(li.text());
+//                            }
+//                        }catch (Exception e){
+//                            e.printStackTrace();
+//                        }
+//                    }
+//                    guide.setItems(stringList);
+//                }catch (Exception e){
+//                    e.printStackTrace();
+//                }
+//
+//                parentsGuide.setProfanity(guide);
+//            }catch (Exception e){
+//                e.printStackTrace();
+//            }
+//            try {
+//                Element element = doc.getElementById("advisory-alcohol");
+//                ParentsGuide.ParentalGuideItems.Guide guide = new ParentsGuide.ParentalGuideItems.Guide();
+//                try {
+//                    guide.setTitle(element.getElementsByClass("ipl-list-title").text());
+//                }catch (Exception e){
+//                    e.printStackTrace();
+//                }
+//                try {
+//                    guide.setTypeRate(element.getElementsByClass("advisory-severity-vote").get(0).getElementsByClass("ipl-status-pill").text());
+//                }catch (Exception e){
+//                    e.printStackTrace();
+//                }
+//                try {
+//                    List<String> stringList = new ArrayList<>();
+//                    for (Element li : element.getElementsByTag("ul").get(0).getElementsByTag("li")) {
+//                        try{
+//                            if (!li.hasClass("advisory-severity-vote")){
+//                                stringList.add(li.text());
+//                            }
+//                        }catch (Exception e){
+//                            e.printStackTrace();
+//                        }
+//                    }
+//                    guide.setItems(stringList);
+//                }catch (Exception e){
+//                    e.printStackTrace();
+//                }
+//
+//                parentsGuide.setAlcohol(guide);
+//            }catch (Exception e){
+//                e.printStackTrace();
+//            }
+//            try {
+//                Element element = doc.getElementById("advisory-frightening");
+//                ParentsGuide.ParentalGuideItems.Guide guide = new ParentsGuide.ParentalGuideItems.Guide();
+//                try {
+//                    guide.setTitle(element.getElementsByClass("ipl-list-title").text());
+//                }catch (Exception e){
+//                    e.printStackTrace();
+//                }
+//                try {
+//                    guide.setTypeRate(element.getElementsByClass("advisory-severity-vote").get(0).getElementsByClass("ipl-status-pill").text());
+//                }catch (Exception e){
+//                    e.printStackTrace();
+//                }
+//                try {
+//                    List<String> stringList = new ArrayList<>();
+//                    for (Element li : element.getElementsByTag("ul").get(0).getElementsByTag("li")) {
+//                        try{
+//                            if (!li.hasClass("advisory-severity-vote")){
+//                                stringList.add(li.text());
+//                            }
+//                        }catch (Exception e){
+//                            e.printStackTrace();
+//                        }
+//                    }
+//                    guide.setItems(stringList);
+//                }catch (Exception e){
+//                    e.printStackTrace();
+//                }
+//
+//                parentsGuide.setFrightening(guide);
+//            }catch (Exception e){
+//                e.printStackTrace();
+//            }
+//            try {
+//                Element element = doc.getElementById("advisory-spoilers");
+//                ParentsGuide.ParentalGuideItems.Guide guide = new ParentsGuide.ParentalGuideItems.Guide();
+//                try {
+//                    guide.setTitle(element.getElementsByClass("ipl-list-title").text());
+//                }catch (Exception e){
+//                    e.printStackTrace();
+//                }
+//                try {
+//                    guide.setTypeRate(element.getElementsByClass("advisory-severity-vote").get(0).getElementsByClass("ipl-status-pill").text());
+//                }catch (Exception e){
+//                    e.printStackTrace();
+//                }
+//                try {
+//                    List<String> stringList = new ArrayList<>();
+//                    for (Element li : element.getElementsByTag("ul").get(0).getElementsByTag("li")) {
+//                        try{
+//                            if (!li.hasClass("advisory-severity-vote")){
+//                                stringList.add(li.text());
+//                            }
+//                        }catch (Exception e){
+//                            e.printStackTrace();
+//                        }
+//                    }
+//                    guide.setItems(stringList);
+//                }catch (Exception e){
+//                    e.printStackTrace();
+//                }
+//
+//                parentsGuide.setSpoilers(guide);
+//            }catch (Exception e){
+//                e.printStackTrace();
+//            }
+
+            return new ApiResponse<>(parentsGuide,null,true);
         }catch (IOException ioException){
             return new ApiResponse<>(null,ioException.getMessage(),false);
         }
