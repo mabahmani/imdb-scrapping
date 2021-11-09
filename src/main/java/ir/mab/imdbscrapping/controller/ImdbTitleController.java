@@ -25,6 +25,7 @@ public class ImdbTitleController {
     private final Pattern namePattern = Pattern.compile("nm+[0-9]+");
     private final Pattern videoPattern = Pattern.compile("vi+[0-9]+");
     private final Pattern titlePattern = Pattern.compile("tt+[0-9]+");
+    private final Pattern eventPattern = Pattern.compile("ev+[0-9]+");
 
     @GetMapping("/top250")
     ApiResponse<List<MovieSummary>> fetchTop250Movies() {
@@ -422,207 +423,125 @@ public class ImdbTitleController {
                 e.printStackTrace();
             }
 
-//            try {
-//                Element element = doc.getElementById("advisory-nudity");
-//                ParentsGuide.ParentalGuideItems.Guide guide = new ParentsGuide.ParentalGuideItems.Guide();
-//
-//                try {
-//                    guide.setTitle(element.getElementsByClass("ipl-list-title").text());
-//                }catch (Exception e){
-//                    e.printStackTrace();
-//                }
-//                try {
-//                    guide.setTypeRate(element.getElementsByClass("advisory-severity-vote").get(0).getElementsByClass("ipl-status-pill").text());
-//                }catch (Exception e){
-//                    e.printStackTrace();
-//                }
-//                try {
-//                    List<String> stringList = new ArrayList<>();
-//                    for (Element li : element.getElementsByTag("ul").get(0).getElementsByTag("li")) {
-//                        try{
-//                            if (!li.hasClass("advisory-severity-vote")){
-//                                stringList.add(li.text());
-//                            }
-//                        }catch (Exception e){
-//                            e.printStackTrace();
-//                        }
-//                    }
-//                    guide.setItems(stringList);
-//                }catch (Exception e){
-//                    e.printStackTrace();
-//                }
-//
-//                parentsGuide.setNudity(guide);
-//            }catch (Exception e){
-//                e.printStackTrace();
-//            }
-//            try {
-//                Element element = doc.getElementById("advisory-violence");
-//                ParentsGuide.ParentalGuideItems.Guide guide = new ParentsGuide.ParentalGuideItems.Guide();
-//                try {
-//                    guide.setTitle(element.getElementsByClass("ipl-list-title").text());
-//                }catch (Exception e){
-//                    e.printStackTrace();
-//                }
-//                try {
-//                    guide.setTypeRate(element.getElementsByClass("advisory-severity-vote").get(0).getElementsByClass("ipl-status-pill").text());
-//                }catch (Exception e){
-//                    e.printStackTrace();
-//                }
-//                try {
-//                    List<String> stringList = new ArrayList<>();
-//                    for (Element li : element.getElementsByTag("ul").get(0).getElementsByTag("li")) {
-//                        try{
-//                            if (!li.hasClass("advisory-severity-vote")){
-//                                stringList.add(li.text());
-//                            }
-//                        }catch (Exception e){
-//                            e.printStackTrace();
-//                        }
-//                    }
-//                    guide.setItems(stringList);
-//                }catch (Exception e){
-//                    e.printStackTrace();
-//                }
-//
-//                parentsGuide.setViolence(guide);
-//            }catch (Exception e){
-//                e.printStackTrace();
-//            }
-//            try {
-//                Element element = doc.getElementById("advisory-profanity");
-//                ParentsGuide.ParentalGuideItems.Guide guide = new ParentsGuide.ParentalGuideItems.Guide();
-//                try {
-//                    guide.setTitle(element.getElementsByClass("ipl-list-title").text());
-//                }catch (Exception e){
-//                    e.printStackTrace();
-//                }
-//                try {
-//                    guide.setTypeRate(element.getElementsByClass("advisory-severity-vote").get(0).getElementsByClass("ipl-status-pill").text());
-//                }catch (Exception e){
-//                    e.printStackTrace();
-//                }
-//                try {
-//                    List<String> stringList = new ArrayList<>();
-//                    for (Element li : element.getElementsByTag("ul").get(0).getElementsByTag("li")) {
-//                        try{
-//                            if (!li.hasClass("advisory-severity-vote")){
-//                                stringList.add(li.text());
-//                            }
-//                        }catch (Exception e){
-//                            e.printStackTrace();
-//                        }
-//                    }
-//                    guide.setItems(stringList);
-//                }catch (Exception e){
-//                    e.printStackTrace();
-//                }
-//
-//                parentsGuide.setProfanity(guide);
-//            }catch (Exception e){
-//                e.printStackTrace();
-//            }
-//            try {
-//                Element element = doc.getElementById("advisory-alcohol");
-//                ParentsGuide.ParentalGuideItems.Guide guide = new ParentsGuide.ParentalGuideItems.Guide();
-//                try {
-//                    guide.setTitle(element.getElementsByClass("ipl-list-title").text());
-//                }catch (Exception e){
-//                    e.printStackTrace();
-//                }
-//                try {
-//                    guide.setTypeRate(element.getElementsByClass("advisory-severity-vote").get(0).getElementsByClass("ipl-status-pill").text());
-//                }catch (Exception e){
-//                    e.printStackTrace();
-//                }
-//                try {
-//                    List<String> stringList = new ArrayList<>();
-//                    for (Element li : element.getElementsByTag("ul").get(0).getElementsByTag("li")) {
-//                        try{
-//                            if (!li.hasClass("advisory-severity-vote")){
-//                                stringList.add(li.text());
-//                            }
-//                        }catch (Exception e){
-//                            e.printStackTrace();
-//                        }
-//                    }
-//                    guide.setItems(stringList);
-//                }catch (Exception e){
-//                    e.printStackTrace();
-//                }
-//
-//                parentsGuide.setAlcohol(guide);
-//            }catch (Exception e){
-//                e.printStackTrace();
-//            }
-//            try {
-//                Element element = doc.getElementById("advisory-frightening");
-//                ParentsGuide.ParentalGuideItems.Guide guide = new ParentsGuide.ParentalGuideItems.Guide();
-//                try {
-//                    guide.setTitle(element.getElementsByClass("ipl-list-title").text());
-//                }catch (Exception e){
-//                    e.printStackTrace();
-//                }
-//                try {
-//                    guide.setTypeRate(element.getElementsByClass("advisory-severity-vote").get(0).getElementsByClass("ipl-status-pill").text());
-//                }catch (Exception e){
-//                    e.printStackTrace();
-//                }
-//                try {
-//                    List<String> stringList = new ArrayList<>();
-//                    for (Element li : element.getElementsByTag("ul").get(0).getElementsByTag("li")) {
-//                        try{
-//                            if (!li.hasClass("advisory-severity-vote")){
-//                                stringList.add(li.text());
-//                            }
-//                        }catch (Exception e){
-//                            e.printStackTrace();
-//                        }
-//                    }
-//                    guide.setItems(stringList);
-//                }catch (Exception e){
-//                    e.printStackTrace();
-//                }
-//
-//                parentsGuide.setFrightening(guide);
-//            }catch (Exception e){
-//                e.printStackTrace();
-//            }
-//            try {
-//                Element element = doc.getElementById("advisory-spoilers");
-//                ParentsGuide.ParentalGuideItems.Guide guide = new ParentsGuide.ParentalGuideItems.Guide();
-//                try {
-//                    guide.setTitle(element.getElementsByClass("ipl-list-title").text());
-//                }catch (Exception e){
-//                    e.printStackTrace();
-//                }
-//                try {
-//                    guide.setTypeRate(element.getElementsByClass("advisory-severity-vote").get(0).getElementsByClass("ipl-status-pill").text());
-//                }catch (Exception e){
-//                    e.printStackTrace();
-//                }
-//                try {
-//                    List<String> stringList = new ArrayList<>();
-//                    for (Element li : element.getElementsByTag("ul").get(0).getElementsByTag("li")) {
-//                        try{
-//                            if (!li.hasClass("advisory-severity-vote")){
-//                                stringList.add(li.text());
-//                            }
-//                        }catch (Exception e){
-//                            e.printStackTrace();
-//                        }
-//                    }
-//                    guide.setItems(stringList);
-//                }catch (Exception e){
-//                    e.printStackTrace();
-//                }
-//
-//                parentsGuide.setSpoilers(guide);
-//            }catch (Exception e){
-//                e.printStackTrace();
-//            }
-
             return new ApiResponse<>(parentsGuide,null,true);
+        }catch (IOException ioException){
+            return new ApiResponse<>(null,ioException.getMessage(),false);
+        }
+    }
+
+    @GetMapping("/{titleId}/awards")
+    ApiResponse<MovieAwards> fetchTitleAwards(@PathVariable("titleId") String titleId){
+        try {
+            Document doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/title/%s/awards", titleId)).get();
+            MovieAwards movieAwards = new MovieAwards();
+            try {
+                movieAwards.setTitle(doc.getElementsByClass("subpage_title_block").get(0).getElementsByClass("subpage_title_block__right-column").get(0).getElementsByTag("h3").get(0).getElementsByTag("a").text());
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+            try {
+                movieAwards.setYear(doc.getElementsByClass("subpage_title_block").get(0).getElementsByClass("subpage_title_block__right-column").get(0).getElementsByTag("h3").get(0).getElementsByTag("span").text());
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+            try {
+                movieAwards.setCover(generateCover(doc.getElementsByClass("subpage_title_block").get(0).getElementsByTag("img").attr("src"),0,0));
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
+            try {
+                List<MovieAwards.Event> events = new ArrayList<>();
+                for (Element eventElement: doc.getElementsByClass("listo").get(0).children()){
+                    MovieAwards.Event event = new MovieAwards.Event();
+                    if (eventElement.tagName().equals("h3") && eventElement.getElementsByTag("a").hasClass("event_year")){
+                        try {
+                            event.setTitle(eventElement.ownText());
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
+                        try {
+                            event.setYear(eventElement.getElementsByClass("event_year").text());
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
+                        try {
+                            event.setEventId(extractEventId(eventElement.getElementsByTag("a").attr("href")));
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
+                        try {
+                            List<MovieAwards.Event.Award> awards = new ArrayList<>();
+                            MovieAwards.Event.Award award = null;
+                            for (Element tr: eventElement.nextElementSibling().getElementsByTag("tr")){
+
+                                if (!tr.getElementsByClass("title_award_outcome").isEmpty()){
+                                    award = new MovieAwards.Event.Award();
+                                    awards.add(award);
+                                    award.setAwardDescriptions(new ArrayList<>());
+                                    try{
+                                        award.setAwardOutcome(tr.getElementsByClass("title_award_outcome").get(0).getElementsByTag("b").text());
+                                    }catch (Exception e){
+                                        e.printStackTrace();
+                                    }
+                                    try{
+                                        award.setAwardCategory(tr.getElementsByClass("title_award_outcome").get(0).getElementsByClass("award_category").text());
+                                    }catch (Exception e){
+                                        e.printStackTrace();
+                                    }
+                                }
+
+                                MovieAwards.Event.Award.AwardDescription awardDescription = new MovieAwards.Event.Award.AwardDescription();
+
+                                try{
+                                    awardDescription.setTitle(tr.getElementsByClass("award_description").get(0).ownText());
+                                }catch (Exception e){
+                                    e.printStackTrace();
+                                }
+                                try{
+                                    awardDescription.setNote(tr.getElementsByClass("award_description").get(0).getElementsByClass("award_detail_notes").text());
+                                }catch (Exception e){
+                                    e.printStackTrace();
+                                }
+                                try{
+                                    List<MovieAwards.Event.Award.AwardDescription.AwardItem> awardItems = new ArrayList<>();
+                                    for (Element trDescription: tr.getElementsByClass("award_description").get(0).getElementsByTag("a")){
+                                        MovieAwards.Event.Award.AwardDescription.AwardItem awardItem = new MovieAwards.Event.Award.AwardDescription.AwardItem();
+                                        try{
+                                            awardItem.setTitle(trDescription.ownText());
+                                        }catch (Exception e){
+                                            e.printStackTrace();
+                                        }
+                                        try{
+                                            awardItem.setId(extractNameId(trDescription.attr("href")));
+                                        }catch (Exception e){
+                                            e.printStackTrace();
+                                        }
+
+                                        awardItems.add(awardItem);
+                                    }
+                                    awardDescription.setAwardItems(awardItems);
+                                }catch (Exception e){
+                                    e.printStackTrace();
+                                }
+
+                                award.getAwardDescriptions().add(awardDescription);
+                            }
+
+                            event.setAwards(awards);
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
+                        events.add(event);
+                    }
+                }
+
+                movieAwards.setEvents(events);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
+            return new ApiResponse<>(movieAwards,null,true);
         }catch (IOException ioException){
             return new ApiResponse<>(null,ioException.getMessage(),false);
         }
@@ -1206,6 +1125,14 @@ public class ImdbTitleController {
 
     private String extractVideoId(String text) {
         Matcher m = videoPattern.matcher(text);
+        if (m.find())
+            return m.group();
+
+        return null;
+    }
+
+    private String extractEventId(String text) {
+        Matcher m = eventPattern.matcher(text);
         if (m.find())
             return m.group();
 
