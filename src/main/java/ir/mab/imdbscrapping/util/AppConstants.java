@@ -9,6 +9,8 @@ public class AppConstants {
     public static final String IMDB_BOX_OFFICE  = IMDB_URL + "/chart/boxoffice/";
     public static final String IMDB_CALENDER  = IMDB_URL + "/calendar/";
     public static final String IMDB_COMING_SOON  = IMDB_URL + "/movies-coming-soon/";
+    public static final String IMDB_POPULAR  = IMDB_URL + "/chart/moviemeter/";
+    public static final String IMDB_POPULAR_TV  = IMDB_URL + "/chart/tvmeter/";
 
     public static class Api{
         public static final String BASE_URL = "/api";

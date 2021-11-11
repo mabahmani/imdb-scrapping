@@ -34,6 +34,28 @@ public class ImdbTitleController {
         }
     }
 
+    @GetMapping("/popular")
+    ApiResponse<List<MovieSummary>> fetchPopularMovies() {
+        List<MovieSummary> movies = new ArrayList<>();
+        try {
+            Document doc = Jsoup.connect(AppConstants.IMDB_POPULAR).get();
+            return extractTop250(movies, doc);
+        } catch (IOException e) {
+            return new ApiResponse<>(null, e.getMessage(), false);
+        }
+    }
+
+    @GetMapping("/populartv")
+    ApiResponse<List<MovieSummary>> fetchPopularTvMovies() {
+        List<MovieSummary> movies = new ArrayList<>();
+        try {
+            Document doc = Jsoup.connect(AppConstants.IMDB_POPULAR_TV).get();
+            return extractTop250(movies, doc);
+        } catch (IOException e) {
+            return new ApiResponse<>(null, e.getMessage(), false);
+        }
+    }
+
     @GetMapping("/bottom100")
     ApiResponse<List<MovieSummary>> fetchBottom100Movies() {
         List<MovieSummary> movies = new ArrayList<>();
