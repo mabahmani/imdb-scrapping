@@ -6,7 +6,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.omg.CORBA.TIMEOUT;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -67,7 +66,22 @@ public class ImdbTitleController {
         try {
             Document doc = Jsoup.connect(AppConstants.IMDB_BOX_OFFICE).get();
             try {
-                return new ApiResponse<>(extractBoxOffice(doc),null, true);
+                return new ApiResponse<>(getBoxOffice(doc),null, true);
+            }catch (Exception e){
+                return new ApiResponse<>(null, e.getMessage(), false);
+            }
+        } catch (IOException e) {
+            return new ApiResponse<>(null, e.getMessage(), false);
+        }
+    }
+
+    @GetMapping("/calender")
+    ApiResponse<List<Calender>> fetchCalender() {
+
+        try {
+            Document doc = Jsoup.connect(AppConstants.IMDB_CALENDER).get();
+            try {
+                return new ApiResponse<>(getCalender(doc),null, true);
             }catch (Exception e){
                 return new ApiResponse<>(null, e.getMessage(), false);
             }
@@ -1117,8 +1131,7 @@ public class ImdbTitleController {
         }
     }
 
-
-    private BoxOffice extractBoxOffice(Document doc) {
+    private BoxOffice getBoxOffice(Document doc) {
         BoxOffice boxOffice = new BoxOffice();
         try {
             boxOffice.setWeekendDate(doc.getElementById("boxoffice").getElementsByTag("h4").text());
@@ -1167,6 +1180,39 @@ public class ImdbTitleController {
             e.printStackTrace();
         }
         return boxOffice;
+    }
+
+
+    private List<Calender> getCalender(Document doc) {
+        List<Calender> calenders = new ArrayList<>();
+        try {
+            Calender calender= new Calender();
+            for (Element element: doc.getElementById("main").children()){
+                try {
+                    if (element.tagName().equals("h4")){
+                        calender = new Calender();
+                        calenders.add(calender);
+                        calender.setDate(element.text());
+                        calender.setTitles(new ArrayList<>());
+                    }
+                    else if (element.tagName().equals("ul")){
+                        for (Element li: element.getElementsByTag("li")){
+                            Calender.LinkTitle linkTitle = new Calender.LinkTitle();
+                            linkTitle.setTitle(li.getElementsByTag("a").text());
+                            linkTitle.setTitleId(extractTitleId(li.getElementsByTag("a").attr("href")));
+                            calender.getTitles().add(linkTitle);
+                        }
+                    }
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return calenders;
     }
 
     private String generateCover(String url, int width, int height) {
