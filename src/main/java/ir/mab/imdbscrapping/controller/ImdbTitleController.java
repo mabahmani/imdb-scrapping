@@ -61,6 +61,21 @@ public class ImdbTitleController {
         }
     }
 
+    @GetMapping("/boxoffice")
+    ApiResponse<BoxOffice> fetchBoxOffice() {
+
+        try {
+            Document doc = Jsoup.connect(AppConstants.IMDB_BOX_OFFICE).get();
+            try {
+                return new ApiResponse<>(extractBoxOffice(doc),null, true);
+            }catch (Exception e){
+                return new ApiResponse<>(null, e.getMessage(), false);
+            }
+        } catch (IOException e) {
+            return new ApiResponse<>(null, e.getMessage(), false);
+        }
+    }
+
     @GetMapping("/{titleId}")
     ApiResponse<MovieDetails> fetchMovie(@PathVariable("titleId") String titleId) {
         MovieDetails movieDetails = new MovieDetails();
@@ -1100,6 +1115,58 @@ public class ImdbTitleController {
             }
 
         }
+    }
+
+
+    private BoxOffice extractBoxOffice(Document doc) {
+        BoxOffice boxOffice = new BoxOffice();
+        try {
+            boxOffice.setWeekendDate(doc.getElementById("boxoffice").getElementsByTag("h4").text());
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        try {
+            List<BoxOffice.BoxOfficeTitle> boxOfficeTitles = new ArrayList<>();
+            for (Element element: doc.getElementById("boxoffice").getElementsByClass("chart").get(0).getElementsByTag("tbody").get(0).getElementsByTag("tr")){
+                BoxOffice.BoxOfficeTitle boxOfficeTitle = new BoxOffice.BoxOfficeTitle();
+                try {
+                    boxOfficeTitle.setCover(generateCover(element.getElementsByClass("posterColumn").get(0).getElementsByTag("img").attr("src"),180,268));
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+                try {
+                    boxOfficeTitle.setTitle(element.getElementsByClass("titleColumn").get(0).getElementsByTag("a").first().ownText());
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+                try {
+                    boxOfficeTitle.setTitleId(extractTitleId(element.getElementsByClass("titleColumn").get(0).getElementsByTag("a").attr("href")));
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+                try {
+                    boxOfficeTitle.setWeekend(element.getElementsByClass("ratingColumn").get(0).text());
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+                try {
+                    boxOfficeTitle.setGross(element.getElementsByClass("ratingColumn").get(1).text());
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+                try {
+                    boxOfficeTitle.setWeeks(element.getElementsByClass("weeksColumn").text());
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+
+                boxOfficeTitles.add(boxOfficeTitle);
+            }
+            boxOffice.setBoxOfficeTitles(boxOfficeTitles);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return boxOffice;
     }
 
     private String generateCover(String url, int width, int height) {
