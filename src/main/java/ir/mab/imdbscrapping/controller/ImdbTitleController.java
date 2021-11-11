@@ -38,6 +38,17 @@ public class ImdbTitleController {
         }
     }
 
+    @GetMapping("/bottom100")
+    ApiResponse<List<MovieSummary>> fetchBottom100Movies() {
+        List<MovieSummary> movies = new ArrayList<>();
+        try {
+            Document doc = Jsoup.connect(AppConstants.IMDB_BOTTOM_100).get();
+            return extractTop250(movies, doc);
+        } catch (IOException e) {
+            return new ApiResponse<>(null, e.getMessage(), false);
+        }
+    }
+
     @GetMapping("/toptv250")
     ApiResponse<List<MovieSummary>> fetchTopTv250Movies() {
         List<MovieSummary> movies = new ArrayList<>();
