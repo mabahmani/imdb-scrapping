@@ -19,5 +19,6 @@ public class AppConstants {
         public static final String NEWS = BASE_URL + "/news";
         public static final String EVENTS = BASE_URL + "/events";
         public static final String SEARCH = BASE_URL + "/search";
+        public static final String GENRE = BASE_URL + "/genres";
     }
 }
