@@ -6,10 +6,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -82,6 +79,21 @@ public class ImdbTitleController {
             Document doc = Jsoup.connect(AppConstants.IMDB_CALENDER).get();
             try {
                 return new ApiResponse<>(getCalender(doc),null, true);
+            }catch (Exception e){
+                return new ApiResponse<>(null, e.getMessage(), false);
+            }
+        } catch (IOException e) {
+            return new ApiResponse<>(null, e.getMessage(), false);
+        }
+    }
+
+    @GetMapping("/comingsoon")
+    ApiResponse<List<MovieComingSoon>> fetchComingSoonTitles(@RequestParam(value = "yearmonth", required = false, defaultValue = "") String yearmonth) {
+
+        try {
+            Document doc = Jsoup.connect(String.format(AppConstants.IMDB_COMING_SOON + "%s", yearmonth)).get();
+            try {
+                return new ApiResponse<>(getComingSoonTitles(doc),null, true);
             }catch (Exception e){
                 return new ApiResponse<>(null, e.getMessage(), false);
             }
@@ -1182,7 +1194,6 @@ public class ImdbTitleController {
         return boxOffice;
     }
 
-
     private List<Calender> getCalender(Document doc) {
         List<Calender> calenders = new ArrayList<>();
         try {
@@ -1214,6 +1225,114 @@ public class ImdbTitleController {
 
         return calenders;
     }
+
+    private List<MovieComingSoon> getComingSoonTitles(Document doc) {
+        List<MovieComingSoon> movieComingSoonList = new ArrayList<>();
+        try {
+            MovieComingSoon movieComingSoon = new MovieComingSoon();
+            for (Element element: doc.getElementById("main").getElementsByClass("list").get(0).children()){
+                if (element.tagName().equals("h4")){
+                    movieComingSoon = new MovieComingSoon();
+                    movieComingSoonList.add(movieComingSoon);
+                    movieComingSoon.setDate(element.text());
+                    movieComingSoon.setTitles(new ArrayList<>());
+                }
+                else {
+                    MovieComingSoon.Title title = new MovieComingSoon.Title();
+                    try {
+                        Element titleElement = element.getElementsByTag("tr").get(0);
+
+                        try {
+                            title.setCover(generateCover(titleElement.getElementsByAttributeValue("id","img_primary").get(0).getElementsByTag("img").attr("src"),280,418));
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
+
+                        try {
+                            title.setTitle(titleElement.getElementsByClass("overview-top").get(0).getElementsByTag("h4").text());
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
+                        try {
+                            title.setTitleId(extractTitleId(titleElement.getElementsByClass("overview-top").get(0).getElementsByTag("h4").get(0).getElementsByTag("a").attr("href")));
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
+                        try {
+                            title.setTitleId(extractTitleId(titleElement.getElementsByClass("overview-top").get(0).getElementsByTag("h4").get(0).getElementsByTag("a").attr("href")));
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
+                        try {
+                            title.setCertificate(titleElement.getElementsByClass("overview-top").get(0).getElementsByClass("cert-runtime-genre").get(0).getElementsByTag("img").attr("title"));
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
+                        try {
+                            title.setRuntime(titleElement.getElementsByClass("overview-top").get(0).getElementsByClass("cert-runtime-genre").get(0).getElementsByTag("time").text());
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
+                        try {
+                            StringBuilder stringBuilder = new StringBuilder();
+                            for (Element genreElement: titleElement.getElementsByClass("overview-top").get(0).getElementsByClass("cert-runtime-genre").get(0).getElementsByTag("span")){
+                                if (genreElement.hasClass("ghost"))
+                                    stringBuilder.append(" | ");
+                                else
+                                    stringBuilder.append(genreElement.text());
+                            }
+                            title.setGenres(stringBuilder.toString());
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
+                        try {
+                             title.setMetaScore(titleElement.getElementsByClass("overview-top").get(0).getElementsByClass("rating_txt").get(0).getElementsByClass("metascore").text());
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
+                        try {
+                             title.setSummary(titleElement.getElementsByClass("overview-top").get(0).getElementsByClass("outline").text());
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
+                        try {
+                            List<MovieComingSoon.Title.Name> names = new ArrayList<>();
+                            for (Element directorElement : titleElement.getElementsByClass("txt-block").get(0).getElementsByTag("a")){
+                                MovieComingSoon.Title.Name name = new MovieComingSoon.Title.Name();
+                                name.setName(directorElement.text());
+                                name.setNameId(extractNameId(directorElement.attr("href")));
+                                names.add(name);
+                            }
+                             title.setDirectors(names);
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
+                        try {
+                            List<MovieComingSoon.Title.Name> names = new ArrayList<>();
+                            for (Element directorElement : titleElement.getElementsByClass("txt-block").get(1).getElementsByTag("a")){
+                                MovieComingSoon.Title.Name name = new MovieComingSoon.Title.Name();
+                                name.setName(directorElement.text());
+                                name.setNameId(extractNameId(directorElement.attr("href")));
+                                names.add(name);
+                            }
+                             title.setStars(names);
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
+
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    movieComingSoon.getTitles().add(title);
+                }
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return movieComingSoonList;
+    }
+
 
     private String generateCover(String url, int width, int height) {
 
