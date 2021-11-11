@@ -2,7 +2,7 @@ package ir.mab.imdbscrapping.controller;
 
 import ir.mab.imdbscrapping.model.ApiResponse;
 import ir.mab.imdbscrapping.model.MovieSearch;
-import ir.mab.imdbscrapping.model.NameSearchBirthDay;
+import ir.mab.imdbscrapping.model.NameSearch;
 import ir.mab.imdbscrapping.util.AppConstants;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -174,41 +174,41 @@ public class ImdbSearchController {
     }
 
     @GetMapping("/birthday")
-    ApiResponse<List<NameSearchBirthDay>> searchNamesByBirthday(@RequestParam(value = "monthday") String date, @RequestParam(value = "start", defaultValue = "1") String start) {
-        List<NameSearchBirthDay> nameSearchBirthDays = new ArrayList<>();
+    ApiResponse<List<NameSearch>> searchNamesByBirthday(@RequestParam(value = "monthday") String date, @RequestParam(value = "start", defaultValue = "1") String start) {
+        List<NameSearch> nameSearches = new ArrayList<>();
         try {
             Document doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/search/name/?birth_monthday=%s&start=%s", date, start)).get();
 
             try {
                 for (Element element : doc.getElementsByClass("lister-list").get(0).getElementsByClass("lister-item")) {
-                    NameSearchBirthDay nameSearchBirthDay = new NameSearchBirthDay();
+                    NameSearch nameSearch = new NameSearch();
                     try {
-                        nameSearchBirthDay.setAvatar(generateCover(element.getElementsByClass("lister-item-image").get(0).getElementsByTag("img").attr("src"), 280, 418));
+                        nameSearch.setAvatar(generateCover(element.getElementsByClass("lister-item-image").get(0).getElementsByTag("img").attr("src"), 280, 418));
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                     try {
-                        nameSearchBirthDay.setNameId(extractNameId(element.getElementsByClass("lister-item-image").get(0).getElementsByTag("a").attr("href")));
+                        nameSearch.setNameId(extractNameId(element.getElementsByClass("lister-item-image").get(0).getElementsByTag("a").attr("href")));
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                     try {
-                        nameSearchBirthDay.setPosition(element.getElementsByClass("lister-item-content").get(0).getElementsByClass("lister-item-header").get(0).getElementsByClass("lister-item-index").get(0).ownText().replace(".", ""));
+                        nameSearch.setPosition(element.getElementsByClass("lister-item-content").get(0).getElementsByClass("lister-item-header").get(0).getElementsByClass("lister-item-index").get(0).ownText().replace(".", ""));
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                     try {
-                        nameSearchBirthDay.setName(element.getElementsByClass("lister-item-content").get(0).getElementsByClass("lister-item-header").get(0).getElementsByTag("a").get(0).ownText());
+                        nameSearch.setName(element.getElementsByClass("lister-item-content").get(0).getElementsByClass("lister-item-header").get(0).getElementsByTag("a").get(0).ownText());
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                     try {
-                        nameSearchBirthDay.setSummary(element.getElementsByClass("lister-item-content").get(0).getElementsByTag("p").get(1).text());
+                        nameSearch.setSummary(element.getElementsByClass("lister-item-content").get(0).getElementsByTag("p").get(1).text());
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                     try {
-                        NameSearchBirthDay.TopMovie topMovie = new NameSearchBirthDay.TopMovie();
+                        NameSearch.TopMovie topMovie = new NameSearch.TopMovie();
                         try {
                             topMovie.setRole(element.getElementsByClass("lister-item-content").get(0).getElementsByTag("p").get(0).ownText());
                         } catch (Exception e) {
@@ -224,18 +224,86 @@ public class ImdbSearchController {
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
-                        nameSearchBirthDay.setTopMovie(topMovie);
+                        nameSearch.setTopMovie(topMovie);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
 
-                    nameSearchBirthDays.add(nameSearchBirthDay);
+                    nameSearches.add(nameSearch);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }
 
-            return new ApiResponse<>(nameSearchBirthDays, null, true);
+            return new ApiResponse<>(nameSearches, null, true);
+        } catch (IOException e) {
+            return new ApiResponse<>(null, e.getMessage(), false);
+        }
+    }
+
+    @GetMapping("/names")
+    ApiResponse<List<NameSearch>> searchNames(@RequestParam(value = "gender", defaultValue = "male,female") String gender, @RequestParam(value = "start", defaultValue = "1") String start) {
+        List<NameSearch> nameSearches = new ArrayList<>();
+        try {
+            Document doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/search/name/?gender=%s&start=%s", gender, start)).get();
+
+            try {
+                for (Element element : doc.getElementsByClass("lister-list").get(0).getElementsByClass("lister-item")) {
+                    NameSearch nameSearch = new NameSearch();
+                    try {
+                        nameSearch.setAvatar(generateCover(element.getElementsByClass("lister-item-image").get(0).getElementsByTag("img").attr("src"), 280, 418));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    try {
+                        nameSearch.setNameId(extractNameId(element.getElementsByClass("lister-item-image").get(0).getElementsByTag("a").attr("href")));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    try {
+                        nameSearch.setPosition(element.getElementsByClass("lister-item-content").get(0).getElementsByClass("lister-item-header").get(0).getElementsByClass("lister-item-index").get(0).ownText().replace(".", ""));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    try {
+                        nameSearch.setName(element.getElementsByClass("lister-item-content").get(0).getElementsByClass("lister-item-header").get(0).getElementsByTag("a").get(0).ownText());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    try {
+                        nameSearch.setSummary(element.getElementsByClass("lister-item-content").get(0).getElementsByTag("p").get(1).text());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    try {
+                        NameSearch.TopMovie topMovie = new NameSearch.TopMovie();
+                        try {
+                            topMovie.setRole(element.getElementsByClass("lister-item-content").get(0).getElementsByTag("p").get(0).ownText());
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        try {
+                            topMovie.setTitle(element.getElementsByClass("lister-item-content").get(0).getElementsByTag("p").get(0).getElementsByTag("a").get(0).ownText());
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        try {
+                            topMovie.setTitleId(extractTitleId(element.getElementsByClass("lister-item-content").get(0).getElementsByTag("p").get(0).getElementsByTag("a").attr("href")));
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        nameSearch.setTopMovie(topMovie);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    nameSearches.add(nameSearch);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            return new ApiResponse<>(nameSearches, null, true);
         } catch (IOException e) {
             return new ApiResponse<>(null, e.getMessage(), false);
         }

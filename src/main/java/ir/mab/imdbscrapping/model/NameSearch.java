@@ -1,6 +1,6 @@
 package ir.mab.imdbscrapping.model;
 
-public class NameSearchBirthDay {
+public class NameSearch {
     String position;
     String name;
     String nameId;
