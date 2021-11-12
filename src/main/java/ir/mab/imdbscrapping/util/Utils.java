@@ -55,4 +55,14 @@ public class Utils {
 
         return null;
     }
+
+    public static String extractImageId(String text) {
+        final Pattern imagePattern = Pattern.compile("rm+[0-9]+");
+        Matcher m = imagePattern.matcher(text);
+        if (m.find())
+            return m.group();
+
+        return null;
+    }
+
 }

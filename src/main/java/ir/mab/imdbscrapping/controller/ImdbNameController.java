@@ -20,14 +20,11 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static ir.mab.imdbscrapping.util.Utils.generateImage;
+import static ir.mab.imdbscrapping.util.Utils.*;
 
 @RestController
 @RequestMapping(path = AppConstants.Api.NAMES)
 public class ImdbNameController {
-    private final Pattern imagePattern = Pattern.compile("rm+[0-9]+");
-    private final Pattern titlePattern = Pattern.compile("tt+[0-9]+");
-    private final Pattern eventPattern = Pattern.compile("ev+[0-9]+");
 
     @GetMapping("/{nameId}")
     ApiResponse<NameDetails> fetchNameDetails(@PathVariable("nameId") String nameId) {
@@ -528,28 +525,4 @@ public class ImdbNameController {
         return new ApiResponse<>(nameAward, null, true);
     }
 
-
-    private String extractImageId(String text) {
-        Matcher m = imagePattern.matcher(text);
-        if (m.find())
-            return m.group();
-
-        return null;
-    }
-
-    private String extractTitleId(String text) {
-        Matcher m = titlePattern.matcher(text);
-        if (m.find())
-            return m.group();
-
-        return null;
-    }
-
-    private String extractEventId(String text) {
-        Matcher m = eventPattern.matcher(text);
-        if (m.find())
-            return m.group();
-
-        return null;
-    }
 }

@@ -23,12 +23,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static ir.mab.imdbscrapping.util.AppConstants.IMDB_LIST;
+import static ir.mab.imdbscrapping.util.Utils.extractImageId;
 import static ir.mab.imdbscrapping.util.Utils.generateImage;
 
 @RestController
 @RequestMapping(path = AppConstants.Api.IMAGES)
 public class ImdbImageController {
-    private final Pattern imagePattern = Pattern.compile("rm+[0-9]+");
 
     @GetMapping("/list/{listId}")
     ApiResponse<ImageList> fetchListImages(@PathVariable("listId") String listId) {
@@ -530,14 +530,6 @@ public class ImdbImageController {
         }
 
         return new ApiResponse<>(imageGallery, null, true);
-    }
-
-    private String extractImageId(String text) {
-        Matcher m = imagePattern.matcher(text);
-        if (m.find())
-            return m.group();
-
-        return null;
     }
 
 }

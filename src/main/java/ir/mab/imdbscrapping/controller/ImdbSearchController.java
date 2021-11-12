@@ -19,14 +19,11 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static ir.mab.imdbscrapping.util.Utils.generateImage;
+import static ir.mab.imdbscrapping.util.Utils.*;
 
 @RestController
 @RequestMapping(path = AppConstants.Api.SEARCH)
 public class ImdbSearchController {
-
-    private final Pattern namePattern = Pattern.compile("nm+[0-9]+");
-    private final Pattern titlePattern = Pattern.compile("tt+[0-9]+");
 
     @GetMapping("/titles")
     ApiResponse<List<MovieSearch>> searchMoviesByGenreKeywords(@RequestParam(value = "genre", required = false) String genre, @RequestParam(value = "keyword", required = false) String keyword, @RequestParam(value = "start", defaultValue = "1") String start) {
@@ -309,22 +306,6 @@ public class ImdbSearchController {
         } catch (IOException e) {
             return new ApiResponse<>(null, e.getMessage(), false);
         }
-    }
-
-
-    private String extractNameId(String text) {
-        Matcher m = namePattern.matcher(text);
-        if (m.find())
-            return m.group();
-
-        return null;
-    }
-    private String extractTitleId(String text) {
-        Matcher m = titlePattern.matcher(text);
-        if (m.find())
-            return m.group();
-
-        return null;
     }
 
 }

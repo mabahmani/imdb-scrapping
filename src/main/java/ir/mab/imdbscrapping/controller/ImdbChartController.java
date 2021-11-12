@@ -14,13 +14,12 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static ir.mab.imdbscrapping.util.Utils.extractTitleId;
 import static ir.mab.imdbscrapping.util.Utils.generateImage;
 
 @RestController
 @RequestMapping(path = AppConstants.Api.CHART)
 public class ImdbChartController {
-
-    private final Pattern titlePattern = Pattern.compile("tt+[0-9]+");
 
     @GetMapping("/top250")
     ApiResponse<List<MovieSummary>> fetchTop250Movies() {
@@ -208,14 +207,6 @@ public class ImdbChartController {
             e.printStackTrace();
         }
         return boxOffice;
-    }
-
-    private String extractTitleId(String text) {
-        Matcher m = titlePattern.matcher(text);
-        if (m.find())
-            return m.group();
-
-        return null;
     }
 
 }
