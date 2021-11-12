@@ -31,7 +31,7 @@ public class ImdbNameController {
     ApiResponse<NameDetails> fetchNameDetails(@PathVariable("nameId") String nameId) {
         NameDetails nameDetails = new NameDetails();
         try {
-            Document doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/name/%s", nameId)).get();
+            Document doc = Jsoup.connect(String.format(AppConstants.IMDB_NAME + "%s", nameId)).get();
             nameDetails.setId(nameId);
             try {
                 nameDetails.setName(doc.getElementsByClass("header").get(0).getElementsByClass("itemprop").get(0).text());
@@ -292,7 +292,7 @@ public class ImdbNameController {
     ApiResponse<NameBio> fetchNameBio(@PathVariable("nameId") String nameId) {
         NameBio nameBio = new NameBio();
         try {
-            Document doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/name/%s/bio", nameId)).get();
+            Document doc = Jsoup.connect(String.format(AppConstants.IMDB_NAME + "%s/bio", nameId)).get();
             try {
                 nameBio.setName(doc.getElementsByClass("name-subpage-header-block").get(0).getElementsByTag("div").get(0).getElementsByTag("a").text());
             }catch (Exception e){
@@ -404,7 +404,7 @@ public class ImdbNameController {
     ApiResponse<NameAward> fetchNameAwards(@PathVariable("nameId") String nameId) {
         NameAward nameAward = new NameAward();
         try {
-            Document doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/name/%s/awards", nameId)).get();
+            Document doc = Jsoup.connect(String.format(AppConstants.IMDB_NAME + "%s/awards", nameId)).get();
             try {
                 nameAward.setName(doc.getElementsByClass("name-subpage-header-block").get(0).getElementsByTag("div").get(0).getElementsByTag("a").text());
             }catch (Exception e){

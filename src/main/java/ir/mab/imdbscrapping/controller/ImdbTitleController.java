@@ -23,77 +23,6 @@ public class ImdbTitleController {
     private final Pattern titlePattern = Pattern.compile("tt+[0-9]+");
     private final Pattern eventPattern = Pattern.compile("ev+[0-9]+");
 
-    @GetMapping("/top250")
-    ApiResponse<List<MovieSummary>> fetchTop250Movies() {
-        List<MovieSummary> movies = new ArrayList<>();
-        try {
-            Document doc = Jsoup.connect(AppConstants.IMDB_TOP_250).get();
-            return extractTop250(movies, doc);
-        } catch (IOException e) {
-            return new ApiResponse<>(null, e.getMessage(), false);
-        }
-    }
-
-    @GetMapping("/popular")
-    ApiResponse<List<MovieSummary>> fetchPopularMovies() {
-        List<MovieSummary> movies = new ArrayList<>();
-        try {
-            Document doc = Jsoup.connect(AppConstants.IMDB_POPULAR).get();
-            return extractTop250(movies, doc);
-        } catch (IOException e) {
-            return new ApiResponse<>(null, e.getMessage(), false);
-        }
-    }
-
-    @GetMapping("/populartv")
-    ApiResponse<List<MovieSummary>> fetchPopularTvMovies() {
-        List<MovieSummary> movies = new ArrayList<>();
-        try {
-            Document doc = Jsoup.connect(AppConstants.IMDB_POPULAR_TV).get();
-            return extractTop250(movies, doc);
-        } catch (IOException e) {
-            return new ApiResponse<>(null, e.getMessage(), false);
-        }
-    }
-
-    @GetMapping("/bottom100")
-    ApiResponse<List<MovieSummary>> fetchBottom100Movies() {
-        List<MovieSummary> movies = new ArrayList<>();
-        try {
-            Document doc = Jsoup.connect(AppConstants.IMDB_BOTTOM_100).get();
-            return extractTop250(movies, doc);
-        } catch (IOException e) {
-            return new ApiResponse<>(null, e.getMessage(), false);
-        }
-    }
-
-    @GetMapping("/toptv250")
-    ApiResponse<List<MovieSummary>> fetchTopTv250Movies() {
-        List<MovieSummary> movies = new ArrayList<>();
-
-        try {
-            Document doc = Jsoup.connect(AppConstants.IMDB_TOP_TV_250).get();
-            return extractTop250(movies, doc);
-        } catch (IOException e) {
-            return new ApiResponse<>(null, e.getMessage(), false);
-        }
-    }
-
-    @GetMapping("/boxoffice")
-    ApiResponse<BoxOffice> fetchBoxOffice() {
-
-        try {
-            Document doc = Jsoup.connect(AppConstants.IMDB_BOX_OFFICE).get();
-            try {
-                return new ApiResponse<>(getBoxOffice(doc),null, true);
-            }catch (Exception e){
-                return new ApiResponse<>(null, e.getMessage(), false);
-            }
-        } catch (IOException e) {
-            return new ApiResponse<>(null, e.getMessage(), false);
-        }
-    }
-
     @GetMapping("/calender")
     ApiResponse<List<Calender>> fetchCalender() {
 
@@ -128,7 +57,7 @@ public class ImdbTitleController {
     ApiResponse<MovieDetails> fetchMovie(@PathVariable("titleId") String titleId) {
         MovieDetails movieDetails = new MovieDetails();
         try {
-            Document doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/title/%s", titleId)).get();
+            Document doc = Jsoup.connect(String.format(AppConstants.IMDB_TITLE + "%s", titleId)).get();
             movieDetails.setOverview(getMovieOverview(doc));
             movieDetails.setVideos(getMovieVideos(doc));
             movieDetails.setPhotos(getMoviePhotos(doc));
@@ -149,7 +78,7 @@ public class ImdbTitleController {
     @GetMapping("/{titleId}/fullcredits")
     ApiResponse<FullCredits> fetchTitleFullCredits(@PathVariable("titleId") String titleId){
         try {
-            Document doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/title/%s/fullcredits", titleId)).get();
+            Document doc = Jsoup.connect(String.format(AppConstants.IMDB_TITLE + "%s/fullcredits", titleId)).get();
             FullCredits fullCredits = new FullCredits();
             try {
                 fullCredits.setTitle(doc.getElementsByClass("subpage_title_block").get(0).getElementsByClass("subpage_title_block__right-column").get(0).getElementsByTag("h3").get(0).getElementsByTag("a").text());
@@ -255,7 +184,7 @@ public class ImdbTitleController {
     @GetMapping("/{titleId}/technical")
     ApiResponse<TechnicalSpecifications> fetchTechnicalSpecs(@PathVariable("titleId") String titleId){
         try {
-            Document doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/title/%s/technical", titleId)).get();
+            Document doc = Jsoup.connect(String.format(AppConstants.IMDB_TITLE + "%s/technical", titleId)).get();
             TechnicalSpecifications technicalSpecifications = new TechnicalSpecifications();
             try {
                 technicalSpecifications.setTitle(doc.getElementsByClass("subpage_title_block").get(0).getElementsByClass("subpage_title_block__right-column").get(0).getElementsByTag("h3").get(0).getElementsByTag("a").text());
@@ -302,7 +231,7 @@ public class ImdbTitleController {
     @GetMapping("/{titleId}/faqs")
     ApiResponse<Faqs> fetchFaqs(@PathVariable("titleId") String titleId){
         try {
-            Document doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/title/%s/faq", titleId)).get();
+            Document doc = Jsoup.connect(String.format(AppConstants.IMDB_TITLE + "%s/faq", titleId)).get();
             Faqs faqs = new Faqs();
             try {
                 faqs.setTitle(doc.getElementsByClass("subpage_title_block").get(0).getElementsByClass("subpage_title_block__right-column").get(0).getElementsByTag("h3").get(0).getElementsByTag("a").text());
@@ -371,7 +300,7 @@ public class ImdbTitleController {
     @GetMapping("/{titleId}/parentalguide")
     ApiResponse<ParentsGuide> fetchParentsGuide(@PathVariable("titleId") String titleId){
         try {
-            Document doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/title/%s/parentalguide", titleId)).get();
+            Document doc = Jsoup.connect(String.format(AppConstants.IMDB_TITLE + "%s/parentalguide", titleId)).get();
             ParentsGuide parentsGuide = new ParentsGuide();
             try {
                 parentsGuide.setTitle(doc.getElementsByClass("subpage_title_block").get(0).getElementsByClass("subpage_title_block__right-column").get(0).getElementsByTag("h3").get(0).getElementsByTag("a").text());
@@ -506,7 +435,7 @@ public class ImdbTitleController {
     @GetMapping("/{titleId}/awards")
     ApiResponse<MovieAwards> fetchTitleAwards(@PathVariable("titleId") String titleId){
         try {
-            Document doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/title/%s/awards", titleId)).get();
+            Document doc = Jsoup.connect(String.format(AppConstants.IMDB_TITLE + "%s/awards", titleId)).get();
             MovieAwards movieAwards = new MovieAwards();
             try {
                 movieAwards.setTitle(doc.getElementsByClass("subpage_title_block").get(0).getElementsByClass("subpage_title_block__right-column").get(0).getElementsByTag("h3").get(0).getElementsByTag("a").text());
@@ -619,72 +548,6 @@ public class ImdbTitleController {
         }catch (IOException ioException){
             return new ApiResponse<>(null,ioException.getMessage(),false);
         }
-    }
-
-    private ApiResponse<List<MovieSummary>> extractTop250(List<MovieSummary> movies, Document doc) {
-        try {
-            for (Element element : doc.getElementsByClass("lister-list").get(0).getElementsByTag("tr")) {
-
-                try {
-                    Element posterColumn = element.getElementsByClass("posterColumn").get(0);
-                    Element titleColumn = element.getElementsByClass("titleColumn").get(0);
-                    Element watchlistColumn = element.getElementsByClass("watchlistColumn").get(0);
-
-                    MovieSummary movieSummary = new MovieSummary();
-
-                    try {
-                        movieSummary.setCover(generateCover(posterColumn.getElementsByTag("a").get(0).getElementsByTag("img").attr("src"), 450, 670));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        movieSummary.setImdbRating(Double.valueOf(posterColumn.selectFirst("[name=ir]").attr("data-value")));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        movieSummary.setLink(AppConstants.IMDB_URL + titleColumn.getElementsByTag("a").get(0).attr("href"));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        movieSummary.setRank(Integer.valueOf(posterColumn.selectFirst("[name=rk]").attr("data-value")));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        movieSummary.setTitle(titleColumn.getElementsByTag("a").get(0).text());
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        movieSummary.setNumberOfRating(Long.valueOf(posterColumn.selectFirst("[name=nv]").attr("data-value")));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        movieSummary.setYear(titleColumn.getElementsByClass("secondaryInfo").get(0).text());
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        movieSummary.setTitleId(watchlistColumn.getElementsByAttribute("data-tconst").get(0).attr("data-tconst"));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-
-                    movies.add(movieSummary);
-
-                } catch (Exception e) {
-                    return new ApiResponse<>(null, e.getMessage(), false);
-                }
-
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return new ApiResponse<>(movies, null, true);
     }
 
     private List<MovieDetails.TechnicalSpecs> getMovieTechnicalSpecs(Document doc) {
@@ -1165,57 +1028,6 @@ public class ImdbTitleController {
         }
     }
 
-    private BoxOffice getBoxOffice(Document doc) {
-        BoxOffice boxOffice = new BoxOffice();
-        try {
-            boxOffice.setWeekendDate(doc.getElementById("boxoffice").getElementsByTag("h4").text());
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-        try {
-            List<BoxOffice.BoxOfficeTitle> boxOfficeTitles = new ArrayList<>();
-            for (Element element: doc.getElementById("boxoffice").getElementsByClass("chart").get(0).getElementsByTag("tbody").get(0).getElementsByTag("tr")){
-                BoxOffice.BoxOfficeTitle boxOfficeTitle = new BoxOffice.BoxOfficeTitle();
-                try {
-                    boxOfficeTitle.setCover(generateCover(element.getElementsByClass("posterColumn").get(0).getElementsByTag("img").attr("src"),180,268));
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
-                try {
-                    boxOfficeTitle.setTitle(element.getElementsByClass("titleColumn").get(0).getElementsByTag("a").first().ownText());
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
-                try {
-                    boxOfficeTitle.setTitleId(extractTitleId(element.getElementsByClass("titleColumn").get(0).getElementsByTag("a").attr("href")));
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
-                try {
-                    boxOfficeTitle.setWeekend(element.getElementsByClass("ratingColumn").get(0).text());
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
-                try {
-                    boxOfficeTitle.setGross(element.getElementsByClass("ratingColumn").get(1).text());
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
-                try {
-                    boxOfficeTitle.setWeeks(element.getElementsByClass("weeksColumn").text());
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
-
-                boxOfficeTitles.add(boxOfficeTitle);
-            }
-            boxOffice.setBoxOfficeTitles(boxOfficeTitles);
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-        return boxOffice;
-    }
-
     private List<Calender> getCalender(Document doc) {
         List<Calender> calenders = new ArrayList<>();
         try {
@@ -1354,7 +1166,6 @@ public class ImdbTitleController {
 
         return movieComingSoonList;
     }
-
 
     private String generateCover(String url, int width, int height) {
 

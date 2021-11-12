@@ -22,16 +22,18 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static ir.mab.imdbscrapping.util.AppConstants.IMDB_LIST;
+
 @RestController
 @RequestMapping(path = AppConstants.Api.IMAGES)
 public class ImdbImageController {
     private final Pattern imagePattern = Pattern.compile("rm+[0-9]+");
 
     @GetMapping("/list/{listId}")
-    ApiResponse<ImageList> fetchImages(@PathVariable("listId") String listId) {
+    ApiResponse<ImageList> fetchListImages(@PathVariable("listId") String listId) {
         ImageList imageGallery = new ImageList();
         try {
-            Document doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/list/%s", listId)).get();
+            Document doc = Jsoup.connect(String.format(AppConstants.IMDB_LIST + "%s", listId)).get();
 
             try {
                 imageGallery.setTitle(doc.getElementsByClass("header list-name").text());
@@ -74,9 +76,9 @@ public class ImdbImageController {
         try {
             Document doc = null;
             if (page != null) {
-                doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/name/%s/mediaindex?page=%s", nameId, page)).get();
+                doc = Jsoup.connect(String.format(AppConstants.IMDB_NAME + "%s/mediaindex?page=%s", nameId, page)).get();
             } else {
-                doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/name/%s/mediaindex", nameId)).get();
+                doc = Jsoup.connect(String.format(AppConstants.IMDB_NAME +"%s/mediaindex", nameId)).get();
             }
 
             try {
@@ -122,9 +124,9 @@ public class ImdbImageController {
         try {
             Document doc = null;
             if (page != null) {
-                doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/title/%s/mediaindex?page=%s", titleId, page)).get();
+                doc = Jsoup.connect(String.format(AppConstants.IMDB_TITLE + "%s/mediaindex?page=%s", titleId, page)).get();
             } else {
-                doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/title/%s/mediaindex", titleId)).get();
+                doc = Jsoup.connect(String.format(AppConstants.IMDB_TITLE + "%s/mediaindex", titleId)).get();
             }
 
             try {
@@ -164,8 +166,8 @@ public class ImdbImageController {
         return new ApiResponse<>(imageGallery, null, true);
     }
 
-    @GetMapping("/list/mediaviewer/{listId}")
-    ApiResponse<ImageGallery> fetchListImagesGraphQl(
+    @GetMapping("/list/{listId}/extra")
+    ApiResponse<ImageGallery> fetchListImagesExtra(
             @PathVariable("listId") String listId,
             @RequestParam(value = "imageId", required = false) String imageId,
             @RequestParam(value = "before", required = false) String beforeId,
@@ -350,8 +352,8 @@ public class ImdbImageController {
         return new ApiResponse<>(imageGallery, null, true);
     }
 
-    @GetMapping("/name/mediaviewer/{nameId}")
-    ApiResponse<ImageGallery> fetchNameImagesGraphQl(
+    @GetMapping("/name/{nameId}/extra")
+    ApiResponse<ImageGallery> fetchNameImagesExtra(
             @PathVariable("nameId") String nameId,
             @RequestParam(value = "imageId", required = false) String imageId,
             @RequestParam(value = "before", required = false) String beforeId,

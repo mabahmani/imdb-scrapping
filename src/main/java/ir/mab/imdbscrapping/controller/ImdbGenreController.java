@@ -21,7 +21,7 @@ public class ImdbGenreController {
     @GetMapping("/")
     ApiResponse<List<Genre>> fetchPopularGenres(){
         try {
-            Document doc = Jsoup.connect(AppConstants.IMDB_URL + "/feature/genre/").get();
+            Document doc = Jsoup.connect(AppConstants.IMDB_GENRE).get();
             List<Genre> genres = new ArrayList<>();
             try {
                 for (Element element : doc.getElementById("main").getElementsByClass("ninja_image")) {
@@ -51,23 +51,6 @@ public class ImdbGenreController {
         } catch (IOException e) {
             return new ApiResponse<>(null, e.getMessage(), false);
         }
-    }
-
-
-    private String generateCover(String url, int width, int height) {
-
-        if (url.isEmpty())
-            return null;
-
-        if (width == 0 || height == 0) {
-            String[] coverUrlSplits = url.split("._V1_");
-            return coverUrlSplits[0] + "._V1_.jpg";
-        }
-
-        String[] coverUrlSplits = url.split("._V1_");
-        String baseUrl = coverUrlSplits[0] + "._V1_";
-        String options = String.format("UY%s_CR%s,0,%s,%s_AL_.jpg", height, 0, 0, 0);
-        return baseUrl + options;
     }
 
 }

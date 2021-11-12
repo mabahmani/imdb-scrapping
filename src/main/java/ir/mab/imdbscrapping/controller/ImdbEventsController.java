@@ -36,7 +36,7 @@ public class ImdbEventsController {
     ApiResponse<Event> fetchEventDetails(@PathVariable("eventId") String eventId,@PathVariable("year") String year) {
         Event event = new Event();
         try {
-            Document doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/event/%s/%s", eventId, year)).get();
+            Document doc = Jsoup.connect(String.format(AppConstants.IMDB_EVENT + "%s/%s", eventId, year)).get();
 
             try {
                 event.setTitle(doc.getElementsByClass("event-header__title").text());

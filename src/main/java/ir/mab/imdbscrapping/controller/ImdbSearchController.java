@@ -32,11 +32,11 @@ public class ImdbSearchController {
         try {
             Document doc = null;
             if (genre != null && keyword != null) {
-                doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/search/title/?genres=%s&keywords=%s&start=%s", genre, keyword, start)).get();
+                doc = Jsoup.connect(String.format(AppConstants.IMDB_SEARCH_TITLE + "?genres=%s&keywords=%s&start=%s", genre, keyword, start)).get();
             } else if (genre != null) {
-                doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/search/title/?genres=%s&start=%s", genre, start)).get();
+                doc = Jsoup.connect(String.format(AppConstants.IMDB_SEARCH_TITLE + "?genres=%s&start=%s", genre, start)).get();
             } else if (keyword != null) {
-                doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/search/title/?keywords=%s&start=%s", keyword, start)).get();
+                doc = Jsoup.connect(String.format(AppConstants.IMDB_SEARCH_TITLE + "?keywords=%s&start=%s", keyword, start)).get();
             } else {
                 return new ApiResponse<>(null, "genre or keyword query needed!", false);
             }
@@ -177,7 +177,7 @@ public class ImdbSearchController {
     ApiResponse<List<NameSearch>> searchNamesByBirthday(@RequestParam(value = "monthday") String date, @RequestParam(value = "start", defaultValue = "1") String start) {
         List<NameSearch> nameSearches = new ArrayList<>();
         try {
-            Document doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/search/name/?birth_monthday=%s&start=%s", date, start)).get();
+            Document doc = Jsoup.connect(String.format(AppConstants.IMDB_SEARCH_NAME + "?birth_monthday=%s&start=%s", date, start)).get();
 
             try {
                 for (Element element : doc.getElementsByClass("lister-list").get(0).getElementsByClass("lister-item")) {
@@ -245,7 +245,7 @@ public class ImdbSearchController {
     ApiResponse<List<NameSearch>> searchNames(@RequestParam(value = "gender", defaultValue = "male,female") String gender, @RequestParam(value = "start", defaultValue = "1") String start) {
         List<NameSearch> nameSearches = new ArrayList<>();
         try {
-            Document doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/search/name/?gender=%s&start=%s", gender, start)).get();
+            Document doc = Jsoup.connect(String.format(AppConstants.IMDB_SEARCH_NAME + "?gender=%s&start=%s", gender, start)).get();
 
             try {
                 for (Element element : doc.getElementsByClass("lister-list").get(0).getElementsByClass("lister-item")) {

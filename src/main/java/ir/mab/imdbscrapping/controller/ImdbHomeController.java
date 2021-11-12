@@ -25,10 +25,10 @@ import java.util.Iterator;
 import java.util.List;
 
 @RestController
-@RequestMapping(path = AppConstants.Api.BASE_URL)
-public class ImdbController {
+@RequestMapping(path = AppConstants.Api.HOME)
+public class ImdbHomeController {
 
-    @GetMapping("/home")
+    @GetMapping("/")
     ApiResponse<Home> fetchHome() {
         Home home = new Home();
         try {
@@ -53,8 +53,8 @@ public class ImdbController {
         return new ApiResponse<>(home, null, true);
     }
 
-    @GetMapping("/home/graphql")
-    ApiResponse<HomeGraphQl> fetchHomeGraphql() {
+    @GetMapping("/extra")
+    ApiResponse<HomeGraphQl> fetchHomeExtra() {
         HomeGraphQl home = new HomeGraphQl();
 
         CloseableHttpClient httpClient = HttpClients.createDefault();

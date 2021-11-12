@@ -20,7 +20,7 @@ public class ImdbKeywordController {
     @GetMapping("/")
     ApiResponse<List<String>> fetchKeywords(){
         try {
-            Document doc = Jsoup.connect(AppConstants.IMDB_URL + "/search/keyword/").get();
+            Document doc = Jsoup.connect(AppConstants.IMDB_KEYWORD).get();
             List<String> keywords = new ArrayList<>();
             try {
                 for (Element element : doc.getElementsByClass("table-row")) {

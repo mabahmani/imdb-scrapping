@@ -25,7 +25,7 @@ public class ImdbVideoController {
     ApiResponse<Video> fetchVideo(@PathVariable("videoId") String videoId) {
         Video video = new Video();
         try {
-            Document doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/video/%s", videoId)).get();
+            Document doc = Jsoup.connect(String.format(AppConstants.IMDB_VIDEO + "%s", videoId)).get();
             Element iMDbVideoExperienceJSElement = extractIMDbVideoExperienceJS(doc);
             extractVideoUrls(iMDbVideoExperienceJSElement, video);
             extractVideoInfo(iMDbVideoExperienceJSElement, video);
@@ -49,10 +49,10 @@ public class ImdbVideoController {
         try {
             Document doc;
             if (page != null){
-                doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/name/%s/videogallery?sort=%s&sortDir=%s&page=%s", nameId,sort,sortDir,page)).get();
+                doc = Jsoup.connect(String.format(AppConstants.IMDB_NAME + "%s/videogallery?sort=%s&sortDir=%s&page=%s", nameId,sort,sortDir,page)).get();
             }
             else {
-                doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/name/%s/videogallery", nameId)).get();
+                doc = Jsoup.connect(String.format(AppConstants.IMDB_NAME + "%s/videogallery", nameId)).get();
             }
 
             try {
@@ -111,10 +111,10 @@ public class ImdbVideoController {
         try {
             Document doc;
             if (page != null){
-                doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/title/%s/videogallery?sort=%s&sortDir=%s&page=%s", titleID,sort,sortDir,page)).get();
+                doc = Jsoup.connect(String.format(AppConstants.IMDB_TITLE + "%s/videogallery?sort=%s&sortDir=%s&page=%s", titleID,sort,sortDir,page)).get();
             }
             else {
-                doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/title/%s/videogallery", titleID)).get();
+                doc = Jsoup.connect(String.format(AppConstants.IMDB_TITLE + "%s/videogallery", titleID)).get();
             }
 
             try {

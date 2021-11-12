@@ -25,7 +25,7 @@ public class ImdbNewsController {
     ApiResponse<News> fetchNewsDetails(@PathVariable("newsId") String newsId) {
         News news = new News();
         try {
-            Document doc = Jsoup.connect(AppConstants.IMDB_URL + String.format("/news/%s", newsId)).get();
+            Document doc = Jsoup.connect(String.format(AppConstants.IMDB_NEWS + "%s", newsId)).get();
 
             try {
                 news.setTitle(doc.getElementsByClass("news-article__title").text());
