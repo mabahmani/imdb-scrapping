@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static ir.mab.imdbscrapping.util.Utils.generateImage;
+
 @RestController
 @RequestMapping(path = AppConstants.Api.NAMES)
 public class ImdbNameController {
@@ -47,7 +49,7 @@ public class ImdbNameController {
                 e.printStackTrace();
             }
             try {
-                nameDetails.setAvatar(generateCover(doc.getElementsByAttributeValue("id", "name-poster").attr("src"), 0, 0));
+                nameDetails.setAvatar(generateImage(doc.getElementsByAttributeValue("id", "name-poster").attr("src"), 0, 0));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -85,7 +87,7 @@ public class ImdbNameController {
                 for (Element element : doc.getElementsByClass("mediastrip").get(0).getElementsByTag("a")) {
                     NameDetails.Photo photo = new NameDetails.Photo();
                     photo.setId(extractImageId(element.attr("href")));
-                    photo.setUrl(generateCover(element.getElementsByTag("img").get(0).attr("loadlate"), 512, 512));
+                    photo.setUrl(generateImage(element.getElementsByTag("img").get(0).attr("loadlate"), 512, 512));
                     photos.add(photo);
                 }
                 nameDetails.setPhotos(photos);
@@ -96,7 +98,7 @@ public class ImdbNameController {
                 List<NameDetails.KnownFor> knownForList = new ArrayList<>();
                 for (Element element : doc.getElementsByClass("knownfor-title")) {
                     NameDetails.KnownFor knownFor = new NameDetails.KnownFor();
-                    knownFor.setCover(generateCover(element.getElementsByClass("uc-add-wl-widget-container").get(0).getElementsByTag("img").attr("src"), 256, 768));
+                    knownFor.setCover(generateImage(element.getElementsByClass("uc-add-wl-widget-container").get(0).getElementsByTag("img").attr("src"), 256, 768));
                     knownFor.setTitle(element.getElementsByClass("knownfor-title-role").get(0).getElementsByTag("a").text());
                     knownFor.setInMovieName(element.getElementsByClass("knownfor-title-role").get(0).getElementsByTag("span").text());
                     knownFor.setYear(element.getElementsByClass("knownfor-year").text());
@@ -201,7 +203,7 @@ public class ImdbNameController {
                 for (Element element : doc.getElementsByClass("mediastrip_big").get(0).children()) {
                     NameDetails.RelatedVideo relatedVideo = new NameDetails.RelatedVideo();
                     relatedVideo.setVideoId(element.getElementsByTag("a").attr("data-video"));
-                    relatedVideo.setCover(generateCover(element.getElementsByTag("a").get(0).getElementsByTag("img").attr("loadlate"), 400, 300));
+                    relatedVideo.setCover(generateImage(element.getElementsByTag("a").get(0).getElementsByTag("img").attr("loadlate"), 400, 300));
                     relatedVideo.setTitle(element.getElementsByTag("a").attr("title"));
                     relatedVideos.add(relatedVideo);
                 }
@@ -248,7 +250,7 @@ public class ImdbNameController {
                 NameDetails.Trailer trailer = new NameDetails.Trailer();
                 try {
                     trailer.setCover(
-                            generateCover(
+                            generateImage(
                                     doc.getElementsByClass("heroWidget").get(0)
                                             .getElementsByClass("slate").get(0)
                                             .getElementsByTag("a").get(0)
@@ -299,7 +301,7 @@ public class ImdbNameController {
                 e.printStackTrace();
             }
             try {
-                nameBio.setAvatar(generateCover(doc.getElementsByClass("name-subpage-header-block").get(0).getElementsByTag("a").get(0).getElementsByTag("img").attr("src"),0,0));
+                nameBio.setAvatar(generateImage(doc.getElementsByClass("name-subpage-header-block").get(0).getElementsByTag("a").get(0).getElementsByTag("img").attr("src"),0,0));
             }catch (Exception e){
                 e.printStackTrace();
             }
@@ -411,7 +413,7 @@ public class ImdbNameController {
                 e.printStackTrace();
             }
             try {
-                nameAward.setAvatar(generateCover(doc.getElementsByClass("name-subpage-header-block").get(0).getElementsByTag("a").get(0).getElementsByTag("img").attr("src"),0,0));
+                nameAward.setAvatar(generateImage(doc.getElementsByClass("name-subpage-header-block").get(0).getElementsByTag("a").get(0).getElementsByTag("img").attr("src"),0,0));
             }catch (Exception e){
                 e.printStackTrace();
             }
@@ -526,21 +528,6 @@ public class ImdbNameController {
         return new ApiResponse<>(nameAward, null, true);
     }
 
-    private String generateCover(String url, int width, int height) {
-
-        if (url.isEmpty())
-            return null;
-
-        if (width == 0 || height == 0) {
-            String[] coverUrlSplits = url.split("._V1_");
-            return coverUrlSplits[0] + "._V1_.jpg";
-        }
-
-        String[] coverUrlSplits = url.split("._V1_");
-        String baseUrl = coverUrlSplits[0] + "._V1_";
-        String options = String.format("UY%s_CR%s,0,%s,%s_AL_.jpg", height, 0, 0, 0);
-        return baseUrl + options;
-    }
 
     private String extractImageId(String text) {
         Matcher m = imagePattern.matcher(text);

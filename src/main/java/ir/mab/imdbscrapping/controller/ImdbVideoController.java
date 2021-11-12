@@ -17,6 +17,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import static ir.mab.imdbscrapping.util.Utils.generateImage;
+
 @RestController
 @RequestMapping(path = AppConstants.Api.VIDEOS)
 public class ImdbVideoController {
@@ -61,7 +63,7 @@ public class ImdbVideoController {
                 e.printStackTrace();
             }
             try {
-                videoGallery.setAvatar(generateCover(doc.getElementsByClass("subpage_title_block").get(0).getElementsByTag("img").attr("src"),0,0));
+                videoGallery.setAvatar(generateImage(doc.getElementsByClass("subpage_title_block").get(0).getElementsByTag("img").attr("src"),0,0));
             }catch (Exception e){
                 e.printStackTrace();
             }
@@ -76,7 +78,7 @@ public class ImdbVideoController {
                         e.printStackTrace();
                     }
                     try {
-                        video.setCover(generateCover(element.getElementsByTag("a").get(0).getElementsByTag("img").attr("loadLate"),400,300));
+                        video.setCover(generateImage(element.getElementsByTag("a").get(0).getElementsByTag("img").attr("loadLate"),400,300));
                     }catch (Exception e){
                         e.printStackTrace();
                     }
@@ -123,7 +125,7 @@ public class ImdbVideoController {
                 e.printStackTrace();
             }
             try {
-                videoGallery.setAvatar(generateCover(doc.getElementsByClass("subpage_title_block").get(0).getElementsByTag("img").attr("src"),0,0));
+                videoGallery.setAvatar(generateImage(doc.getElementsByClass("subpage_title_block").get(0).getElementsByTag("img").attr("src"),0,0));
             }catch (Exception e){
                 e.printStackTrace();
             }
@@ -138,7 +140,7 @@ public class ImdbVideoController {
                         e.printStackTrace();
                     }
                     try {
-                        video.setCover(generateCover(element.getElementsByTag("a").get(0).getElementsByTag("img").attr("loadLate"),400,300));
+                        video.setCover(generateImage(element.getElementsByTag("a").get(0).getElementsByTag("img").attr("loadLate"),400,300));
                     }catch (Exception e){
                         e.printStackTrace();
                     }
@@ -404,21 +406,7 @@ public class ImdbVideoController {
         return result;
     }
 
-    private String generateCover(String url, int width, int height) {
 
-        if (url.isEmpty())
-            return null;
-
-        if (width == 0 || height == 0) {
-            String[] coverUrlSplits = url.split("._V1_");
-            return coverUrlSplits[0] + "._V1_.jpg";
-        }
-
-        String[] coverUrlSplits = url.split("._V1_");
-        String baseUrl = coverUrlSplits[0] + "._V1_";
-        String options = String.format("UY%s_CR%s,0,%s,%s_AL_.jpg", height, 0, 0, 0);
-        return baseUrl + options;
-    }
 
 
 }

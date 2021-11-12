@@ -14,14 +14,11 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static ir.mab.imdbscrapping.util.Utils.*;
+
 @RestController
 @RequestMapping(path = AppConstants.Api.TITLES)
 public class ImdbTitleController {
-
-    private final Pattern namePattern = Pattern.compile("nm+[0-9]+");
-    private final Pattern videoPattern = Pattern.compile("vi+[0-9]+");
-    private final Pattern titlePattern = Pattern.compile("tt+[0-9]+");
-    private final Pattern eventPattern = Pattern.compile("ev+[0-9]+");
 
     @GetMapping("/calender")
     ApiResponse<List<Calender>> fetchCalender() {
@@ -91,7 +88,7 @@ public class ImdbTitleController {
                 e.printStackTrace();
             }
             try {
-                fullCredits.setCover(generateCover(doc.getElementsByClass("subpage_title_block").get(0).getElementsByTag("img").attr("src"),0,0));
+                fullCredits.setCover(generateImage(doc.getElementsByClass("subpage_title_block").get(0).getElementsByTag("img").attr("src"),0,0));
             }catch (Exception e){
                 e.printStackTrace();
             }
@@ -151,7 +148,7 @@ public class ImdbTitleController {
                                         e.printStackTrace();
                                     }
                                     try{
-                                        item.setImage(generateCover(tr.getElementsByClass("primary_photo").get(0).getElementsByTag("img").attr("loadLate"),0,0));
+                                        item.setImage(generateImage(tr.getElementsByClass("primary_photo").get(0).getElementsByTag("img").attr("loadLate"),0,0));
                                     }catch (Exception e){
                                         e.printStackTrace();
                                     }
@@ -197,7 +194,7 @@ public class ImdbTitleController {
                 e.printStackTrace();
             }
             try {
-                technicalSpecifications.setCover(generateCover(doc.getElementsByClass("subpage_title_block").get(0).getElementsByTag("img").attr("src"),0,0));
+                technicalSpecifications.setCover(generateImage(doc.getElementsByClass("subpage_title_block").get(0).getElementsByTag("img").attr("src"),0,0));
             }catch (Exception e){
                 e.printStackTrace();
             }
@@ -244,7 +241,7 @@ public class ImdbTitleController {
                 e.printStackTrace();
             }
             try {
-                faqs.setCover(generateCover(doc.getElementsByClass("subpage_title_block").get(0).getElementsByTag("img").attr("src"),0,0));
+                faqs.setCover(generateImage(doc.getElementsByClass("subpage_title_block").get(0).getElementsByTag("img").attr("src"),0,0));
             }catch (Exception e){
                 e.printStackTrace();
             }
@@ -313,7 +310,7 @@ public class ImdbTitleController {
                 e.printStackTrace();
             }
             try {
-                parentsGuide.setCover(generateCover(doc.getElementsByClass("subpage_title_block").get(0).getElementsByTag("img").attr("src"),0,0));
+                parentsGuide.setCover(generateImage(doc.getElementsByClass("subpage_title_block").get(0).getElementsByTag("img").attr("src"),0,0));
             }catch (Exception e){
                 e.printStackTrace();
             }
@@ -448,7 +445,7 @@ public class ImdbTitleController {
                 e.printStackTrace();
             }
             try {
-                movieAwards.setCover(generateCover(doc.getElementsByClass("subpage_title_block").get(0).getElementsByTag("img").attr("src"),0,0));
+                movieAwards.setCover(generateImage(doc.getElementsByClass("subpage_title_block").get(0).getElementsByTag("img").attr("src"),0,0));
             }catch (Exception e){
                 e.printStackTrace();
             }
@@ -746,7 +743,7 @@ public class ImdbTitleController {
             for (Element element : doc.getElementsByClass("ipc-poster-card")) {
                 try {
                     MovieDetails.RelatedMovie relatedMovie = new MovieDetails.RelatedMovie();
-                    relatedMovie.setCover(generateCover(element.getElementsByTag("img").attr("src"), 430, 621));
+                    relatedMovie.setCover(generateImage(element.getElementsByTag("img").attr("src"), 430, 621));
                     relatedMovie.setRate(element.getElementsByClass("ipc-rating-star").text());
                     relatedMovie.setTitle(element.getElementsByAttributeValue("data-testid", "title").text());
                     relatedMovie.setLink(AppConstants.IMDB_URL + element.getElementsByClass("ipc-poster-card__title").attr("href"));
@@ -773,7 +770,7 @@ public class ImdbTitleController {
             for (Element element : doc.getElementsByAttributeValue("data-testid", "title-cast-item")) {
                 try {
                     MovieDetails.Person person = new MovieDetails.Person();
-                    person.setImage(generateCover(element.getElementsByTag("img").attr("src"), 0, 0));
+                    person.setImage(generateImage(element.getElementsByTag("img").attr("src"), 0, 0));
                     person.setId(extractNameId(element.getElementsByAttributeValue("data-testid", "title-cast-item__actor").attr("href")));
                     person.setLink(AppConstants.IMDB_URL + element.getElementsByAttributeValue("data-testid", "title-cast-item__actor").attr("href"));
                     person.setRealName(element.getElementsByAttributeValue("data-testid", "title-cast-item__actor").text());
@@ -800,8 +797,8 @@ public class ImdbTitleController {
             for (Element element : doc.getElementsByClass("ipc-photo")) {
                 try {
                     MovieDetails.Photo photo = new MovieDetails.Photo();
-                    photo.setOriginal(generateCover(element.getElementsByTag("img").attr("src"), 0, 0));
-                    photo.setThumbnail(generateCover(element.getElementsByTag("img").attr("src"), 512, 512));
+                    photo.setOriginal(generateImage(element.getElementsByTag("img").attr("src"), 0, 0));
+                    photo.setThumbnail(generateImage(element.getElementsByTag("img").attr("src"), 512, 512));
                     photos.add(photo);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -823,7 +820,7 @@ public class ImdbTitleController {
                 try {
                     MovieDetails.Video video = new MovieDetails.Video();
                     video.setDuration(element.getElementsByClass("ipc-lockup-overlay__text").text());
-                    video.setPreview(generateCover(element.getElementsByTag("img").attr("src"), 0, 0));
+                    video.setPreview(generateImage(element.getElementsByTag("img").attr("src"), 0, 0));
                     video.setLink(AppConstants.IMDB_URL + element.getElementsByClass("ipc-slate-card__title").attr("href"));
                     video.setTitle(element.getElementsByClass("ipc-slate-card__title-text").text());
                     video.setId(extractVideoId(video.getLink()));
@@ -888,12 +885,12 @@ public class ImdbTitleController {
             e.printStackTrace();
         }
         try {
-            overview.setCover(generateCover(doc.getElementsByAttributeValue("data-testid", "hero-media__poster").get(0).getElementsByTag("img").get(0).attr("src"), 0, 0));
+            overview.setCover(generateImage(doc.getElementsByAttributeValue("data-testid", "hero-media__poster").get(0).getElementsByTag("img").get(0).attr("src"), 0, 0));
         } catch (Exception e) {
             e.printStackTrace();
         }
         try {
-            overview.setTrailerPreview(generateCover(doc.getElementsByAttributeValue("data-testid", "hero-media__slate").get(0).getElementsByTag("img").get(0).attr("src"), 0, 0));
+            overview.setTrailerPreview(generateImage(doc.getElementsByAttributeValue("data-testid", "hero-media__slate").get(0).getElementsByTag("img").get(0).attr("src"), 0, 0));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1077,7 +1074,7 @@ public class ImdbTitleController {
                         Element titleElement = element.getElementsByTag("tr").get(0);
 
                         try {
-                            title.setCover(generateCover(titleElement.getElementsByAttributeValue("id","img_primary").get(0).getElementsByTag("img").attr("src"),280,418));
+                            title.setCover(generateImage(titleElement.getElementsByAttributeValue("id","img_primary").get(0).getElementsByTag("img").attr("src"),280,418));
                         }catch (Exception e){
                             e.printStackTrace();
                         }
@@ -1167,51 +1164,5 @@ public class ImdbTitleController {
         return movieComingSoonList;
     }
 
-    private String generateCover(String url, int width, int height) {
 
-        if (url.isEmpty())
-            return null;
-
-        if (width == 0 || height == 0) {
-            String[] coverUrlSplits = url.split("._V1_");
-            return coverUrlSplits[0] + "._V1_.jpg";
-        }
-
-        String[] coverUrlSplits = url.split("._V1_");
-        String baseUrl = coverUrlSplits[0] + "._V1_";
-        String options = String.format("UY%s_CR%s,0,%s,%s_AL_.jpg", height, 0, 0, 0);
-        return baseUrl + options;
-    }
-
-    private String extractNameId(String text) {
-        Matcher m = namePattern.matcher(text);
-        if (m.find())
-            return m.group();
-
-        return null;
-    }
-
-    private String extractTitleId(String text) {
-        Matcher m = titlePattern.matcher(text);
-        if (m.find())
-            return m.group();
-
-        return null;
-    }
-
-    private String extractVideoId(String text) {
-        Matcher m = videoPattern.matcher(text);
-        if (m.find())
-            return m.group();
-
-        return null;
-    }
-
-    private String extractEventId(String text) {
-        Matcher m = eventPattern.matcher(text);
-        if (m.find())
-            return m.group();
-
-        return null;
-    }
 }

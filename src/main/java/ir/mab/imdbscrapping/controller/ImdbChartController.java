@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static ir.mab.imdbscrapping.util.Utils.generateImage;
+
 @RestController
 @RequestMapping(path = AppConstants.Api.CHART)
 public class ImdbChartController {
@@ -103,7 +105,7 @@ public class ImdbChartController {
                     MovieSummary movieSummary = new MovieSummary();
 
                     try {
-                        movieSummary.setCover(generateCover(posterColumn.getElementsByTag("a").get(0).getElementsByTag("img").attr("src"), 450, 670));
+                        movieSummary.setCover(generateImage(posterColumn.getElementsByTag("a").get(0).getElementsByTag("img").attr("src"), 450, 670));
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -169,7 +171,7 @@ public class ImdbChartController {
             for (Element element: doc.getElementById("boxoffice").getElementsByClass("chart").get(0).getElementsByTag("tbody").get(0).getElementsByTag("tr")){
                 BoxOffice.BoxOfficeTitle boxOfficeTitle = new BoxOffice.BoxOfficeTitle();
                 try {
-                    boxOfficeTitle.setCover(generateCover(element.getElementsByClass("posterColumn").get(0).getElementsByTag("img").attr("src"),180,268));
+                    boxOfficeTitle.setCover(generateImage(element.getElementsByClass("posterColumn").get(0).getElementsByTag("img").attr("src"),180,268));
                 }catch (Exception e){
                     e.printStackTrace();
                 }
@@ -206,22 +208,6 @@ public class ImdbChartController {
             e.printStackTrace();
         }
         return boxOffice;
-    }
-
-    private String generateCover(String url, int width, int height) {
-
-        if (url.isEmpty())
-            return null;
-
-        if (width == 0 || height == 0) {
-            String[] coverUrlSplits = url.split("._V1_");
-            return coverUrlSplits[0] + "._V1_.jpg";
-        }
-
-        String[] coverUrlSplits = url.split("._V1_");
-        String baseUrl = coverUrlSplits[0] + "._V1_";
-        String options = String.format("UY%s_CR%s,0,%s,%s_AL_.jpg", height, 0, 0, 0);
-        return baseUrl + options;
     }
 
     private String extractTitleId(String text) {

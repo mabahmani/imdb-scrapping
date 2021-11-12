@@ -23,6 +23,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static ir.mab.imdbscrapping.util.AppConstants.IMDB_LIST;
+import static ir.mab.imdbscrapping.util.Utils.generateImage;
 
 @RestController
 @RequestMapping(path = AppConstants.Api.IMAGES)
@@ -52,7 +53,7 @@ public class ImdbImageController {
                     try {
                         ImageList.Image image = new ImageList.Image();
                         image.setId(extractImageId(element.attr("href")));
-                        image.setUrl(generateCover(element.getElementsByTag("img").get(0).attr("src"), 512, 512));
+                        image.setUrl(generateImage(element.getElementsByTag("img").get(0).attr("src"), 512, 512));
                         images.add(image);
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -88,7 +89,7 @@ public class ImdbImageController {
                 e.printStackTrace();
             }
             try {
-                imageGallery.setSubtitle(generateCover(doc.getElementsByClass("subpage_title_block").get(0).getElementsByTag("a").get(0).getElementsByTag("img").attr("src"),0,0));
+                imageGallery.setSubtitle(generateImage(doc.getElementsByClass("subpage_title_block").get(0).getElementsByTag("a").get(0).getElementsByTag("img").attr("src"),0,0));
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -100,7 +101,7 @@ public class ImdbImageController {
                     try {
                         ImageList.Image image = new ImageList.Image();
                         image.setId(extractImageId(element.attr("href")));
-                        image.setUrl(generateCover(element.getElementsByTag("img").get(0).attr("src"), 512, 512));
+                        image.setUrl(generateImage(element.getElementsByTag("img").get(0).attr("src"), 512, 512));
                         images.add(image);
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -136,7 +137,7 @@ public class ImdbImageController {
                 e.printStackTrace();
             }
             try {
-                imageGallery.setSubtitle(generateCover(doc.getElementsByClass("subpage_title_block").get(0).getElementsByTag("a").get(0).getElementsByTag("img").attr("src"),0,0));
+                imageGallery.setSubtitle(generateImage(doc.getElementsByClass("subpage_title_block").get(0).getElementsByTag("a").get(0).getElementsByTag("img").attr("src"),0,0));
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -148,7 +149,7 @@ public class ImdbImageController {
                     try {
                         ImageList.Image image = new ImageList.Image();
                         image.setId(extractImageId(element.attr("href")));
-                        image.setUrl(generateCover(element.getElementsByTag("img").get(0).attr("src"), 512, 512));
+                        image.setUrl(generateImage(element.getElementsByTag("img").get(0).attr("src"), 512, 512));
                         images.add(image);
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -539,19 +540,4 @@ public class ImdbImageController {
         return null;
     }
 
-    private String generateCover(String url, int width, int height) {
-
-        if (url.isEmpty())
-            return null;
-
-        if (width == 0 || height == 0) {
-            String[] coverUrlSplits = url.split("._V1_");
-            return coverUrlSplits[0] + "._V1_.jpg";
-        }
-
-        String[] coverUrlSplits = url.split("._V1_");
-        String baseUrl = coverUrlSplits[0] + "._V1_";
-        String options = String.format("UY%s_CR%s,0,%s,%s_AL_.jpg", height, 0, 0, 0);
-        return baseUrl + options;
-    }
 }

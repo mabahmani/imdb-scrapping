@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static ir.mab.imdbscrapping.util.Utils.generateImage;
+
 @RestController
 @RequestMapping(path = AppConstants.Api.NEWS)
 public class ImdbNewsController {
@@ -54,7 +56,7 @@ public class ImdbNewsController {
                 e.printStackTrace();
             }
             try {
-                news.setImage(generateCover(doc.getElementsByClass("news-article__image").attr("src"),0,0));
+                news.setImage(generateImage(doc.getElementsByClass("news-article__image").attr("src"),0,0));
             }catch (Exception e){
                 e.printStackTrace();
             }
@@ -69,21 +71,6 @@ public class ImdbNewsController {
         }
 
         return new ApiResponse<>(news, null, true);
-    }
-   private String generateCover(String url, int width, int height) {
-
-        if (url.isEmpty())
-            return null;
-
-        if (width == 0 || height == 0) {
-            String[] coverUrlSplits = url.split("._V1_");
-            return coverUrlSplits[0] + "._V1_.jpg";
-        }
-
-        String[] coverUrlSplits = url.split("._V1_");
-        String baseUrl = coverUrlSplits[0] + "._V1_";
-        String options = String.format("UY%s_CR%s,0,%s,%s_AL_.jpg", height, 0, 0, 0);
-        return baseUrl + options;
     }
 
 }
