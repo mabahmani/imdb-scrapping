@@ -17,8 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Objects;
 
 import static ir.mab.imdbscrapping.util.Utils.*;
 
@@ -111,7 +110,7 @@ public class ImdbNameController {
                 List<Element> headElements = new ArrayList<>();
                 List<Element> categoryElements = new ArrayList<>();
                 try {
-                    for (Element element : doc.getElementById("filmography").children()) {
+                    for (Element element : Objects.requireNonNull(doc.getElementById("filmography")).children()) {
                         if (element.attr("class").equals("head")) {
                             headElements.add(element);
                         } else {
@@ -304,7 +303,7 @@ public class ImdbNameController {
             }
             try {
                 List<NameBio.TitleSubtitle> overviews = new ArrayList<>();
-                for (Element element: doc.getElementById("overviewTable").getElementsByTag("tr")){
+                for (Element element: Objects.requireNonNull(doc.getElementById("overviewTable")).getElementsByTag("tr")){
                     try {
                         NameBio.TitleSubtitle overview = new NameBio.TitleSubtitle();
                         overview.setTitle(element.getElementsByClass("label").text());
@@ -320,14 +319,14 @@ public class ImdbNameController {
             }
 
             try {
-                nameBio.setMiniBio(doc.getElementsByAttributeValue("name","mini_bio").get(0).nextElementSibling().nextElementSibling().text());
+                nameBio.setMiniBio(Objects.requireNonNull(Objects.requireNonNull(doc.getElementsByAttributeValue("name", "mini_bio").get(0).nextElementSibling()).nextElementSibling()).text());
             }catch (Exception e){
                 e.printStackTrace();
             }
 
             try {
                 List<NameBio.TitleSubtitle> list = new ArrayList<>();
-                for (Element element: doc.getElementById("tableFamily").getElementsByTag("tr")){
+                for (Element element: Objects.requireNonNull(doc.getElementById("tableFamily")).getElementsByTag("tr")){
                     try {
                         NameBio.TitleSubtitle item = new NameBio.TitleSubtitle();
                         item.setTitle(element.getElementsByTag("td").get(0).text());
@@ -345,7 +344,7 @@ public class ImdbNameController {
 
             try {
                 List<String> list = new ArrayList<>();
-                for (Element element: doc.getElementsByAttributeValue("name","trademark").get(0).nextElementSibling().nextElementSiblings()){
+                for (Element element: Objects.requireNonNull(doc.getElementsByAttributeValue("name", "trademark").get(0).nextElementSibling()).nextElementSiblings()){
                     if (element.hasClass("soda")){
                         list.add(element.text());
                     }
@@ -360,7 +359,7 @@ public class ImdbNameController {
             }
             try {
                 List<String> list = new ArrayList<>();
-                for (Element element: doc.getElementsByAttributeValue("name","trivia").get(0).nextElementSibling().nextElementSiblings()){
+                for (Element element: Objects.requireNonNull(doc.getElementsByAttributeValue("name", "trivia").get(0).nextElementSibling()).nextElementSiblings()){
                     if (element.hasClass("soda")){
                         list.add(element.text());
                     }
@@ -376,7 +375,7 @@ public class ImdbNameController {
 
             try {
                 List<NameBio.TitleSubtitle> list = new ArrayList<>();
-                for (Element element: doc.getElementById("salariesTable").getElementsByTag("tr")){
+                for (Element element: Objects.requireNonNull(doc.getElementById("salariesTable")).getElementsByTag("tr")){
                     try {
                         NameBio.TitleSubtitle item = new NameBio.TitleSubtitle();
                         item.setId(extractTitleId(element.getElementsByTag("td").get(0).getElementsByTag("a").attr("href")));
@@ -417,11 +416,11 @@ public class ImdbNameController {
 
             try {
                 List<String> titles = new ArrayList<>();
-                for (Element head: doc.getElementById("main").getElementsByClass("article").get(0).getElementsByTag("h3")){
+                for (Element head: Objects.requireNonNull(doc.getElementById("main")).getElementsByClass("article").get(0).getElementsByTag("h3")){
                     titles.add(head.text());
                 }
                 titles.remove(0);
-                List<Element> awardTables = new ArrayList<>(doc.getElementById("main").getElementsByClass("article").get(0).getElementsByTag("table"));
+                List<Element> awardTables = new ArrayList<>(Objects.requireNonNull(doc.getElementById("main")).getElementsByClass("article").get(0).getElementsByTag("table"));
 
                 List<NameAward.Event> events = new ArrayList<>();
                 for (int i=0; i<titles.size(); i++){
@@ -435,9 +434,9 @@ public class ImdbNameController {
                         Elements trElements = awardTables.get(i).getElementsByTag("tr");
                         for (Element tr: trElements){
 
-                            Element awardYearElement = null;
-                            Element awardOutcomeElement = null;
-                            Element awardDescriptionElement = null;
+                            Element awardYearElement;
+                            Element awardOutcomeElement;
+                            Element awardDescriptionElement;
                             try{
                                 awardYearElement = tr.getElementsByClass("award_year").get(0);
 
@@ -485,7 +484,7 @@ public class ImdbNameController {
                                             e.printStackTrace();
                                         }
                                         try{
-                                            title.setTitleYear(element.nextElementSibling().text());
+                                            title.setTitleYear(Objects.requireNonNull(element.nextElementSibling()).text());
                                         }catch (Exception e){
                                             e.printStackTrace();
                                         }

@@ -19,10 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import static ir.mab.imdbscrapping.util.AppConstants.IMDB_LIST;
 import static ir.mab.imdbscrapping.util.Utils.extractImageId;
 import static ir.mab.imdbscrapping.util.Utils.generateImage;
 
@@ -43,23 +40,12 @@ public class ImdbImageController {
             }
             try {
                 imageGallery.setSubtitle(doc.getElementsByClass("list-description").text());
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
 
             try {
-                List<ImageList.Image> images = new ArrayList<>();
-                for (Element element : doc.getElementsByClass("media_index_thumb_list").get(0).getElementsByTag("a")) {
-                    try {
-                        ImageList.Image image = new ImageList.Image();
-                        image.setId(extractImageId(element.attr("href")));
-                        image.setUrl(generateImage(element.getElementsByTag("img").get(0).attr("src"), 512, 512));
-                        images.add(image);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-                imageGallery.setImages(images);
+                imageGallery.setImages(extractImages(doc));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -75,42 +61,14 @@ public class ImdbImageController {
     ApiResponse<ImageList> fetchNameImages(@PathVariable("nameId") String nameId, @RequestParam(value = "page", required = false) Integer page) {
         ImageList imageGallery = new ImageList();
         try {
-            Document doc = null;
+            Document doc;
             if (page != null) {
                 doc = Jsoup.connect(String.format(AppConstants.IMDB_NAME + "%s/mediaindex?page=%s", nameId, page)).get();
             } else {
-                doc = Jsoup.connect(String.format(AppConstants.IMDB_NAME +"%s/mediaindex", nameId)).get();
+                doc = Jsoup.connect(String.format(AppConstants.IMDB_NAME + "%s/mediaindex", nameId)).get();
             }
 
-            try {
-                imageGallery.setTitle(doc.getElementsByClass("subpage_title_block").get(0).getElementsByTag("h3").text());
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            try {
-                imageGallery.setSubtitle(generateImage(doc.getElementsByClass("subpage_title_block").get(0).getElementsByTag("a").get(0).getElementsByTag("img").attr("src"),0,0));
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            try {
-                List<ImageList.Image> images = new ArrayList<>();
-                for (Element element : doc.getElementsByClass("media_index_thumb_list").get(0).getElementsByTag("a")) {
-                    try {
-                        ImageList.Image image = new ImageList.Image();
-                        image.setId(extractImageId(element.attr("href")));
-                        image.setUrl(generateImage(element.getElementsByTag("img").get(0).attr("src"), 512, 512));
-                        images.add(image);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-                imageGallery.setImages(images);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            extractHeaderTitle(imageGallery, doc);
 
         } catch (IOException e) {
             return new ApiResponse<>(null, e.getMessage(), false);
@@ -123,42 +81,14 @@ public class ImdbImageController {
     ApiResponse<ImageList> fetchTitleImages(@PathVariable("titleId") String titleId, @RequestParam(value = "page", required = false) Integer page) {
         ImageList imageGallery = new ImageList();
         try {
-            Document doc = null;
+            Document doc;
             if (page != null) {
                 doc = Jsoup.connect(String.format(AppConstants.IMDB_TITLE + "%s/mediaindex?page=%s", titleId, page)).get();
             } else {
                 doc = Jsoup.connect(String.format(AppConstants.IMDB_TITLE + "%s/mediaindex", titleId)).get();
             }
 
-            try {
-                imageGallery.setTitle(doc.getElementsByClass("subpage_title_block").get(0).getElementsByTag("h3").text());
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            try {
-                imageGallery.setSubtitle(generateImage(doc.getElementsByClass("subpage_title_block").get(0).getElementsByTag("a").get(0).getElementsByTag("img").attr("src"),0,0));
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            try {
-                List<ImageList.Image> images = new ArrayList<>();
-                for (Element element : doc.getElementsByClass("media_index_thumb_list").get(0).getElementsByTag("a")) {
-                    try {
-                        ImageList.Image image = new ImageList.Image();
-                        image.setId(extractImageId(element.attr("href")));
-                        image.setUrl(generateImage(element.getElementsByTag("img").get(0).attr("src"), 512, 512));
-                        images.add(image);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-                imageGallery.setImages(images);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            extractHeaderTitle(imageGallery, doc);
 
         } catch (IOException e) {
             return new ApiResponse<>(null, e.getMessage(), false);
@@ -179,28 +109,11 @@ public class ImdbImageController {
         ImageGallery imageGallery = new ImageGallery();
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpPost httppost = new HttpPost(AppConstants.IMDB_URL_GRAPH_QL);
-        StringEntity params = null;
+        StringEntity params;
         try {
             JSONObject reqObject = new JSONObject();
             reqObject.put("query", "query ListImages($id: ID!, $before: ID, $after: ID, $jumpTo: ID, $first: Int, $last: Int, $lastYes: Boolean!, $firstYes: Boolean!) {\n  list(id: $id) {\n    name {\n      originalText\n      __typename\n    }\n    items(first: $first, after: $after, jumpTo: $jumpTo) @include(if: $firstYes) {\n      total\n      ...MediaViewerListMeta\n      __typename\n    }\n    wrapFront: items(last: $last, before: $before) @include(if: $lastYes) {\n      total\n      ...MediaViewerListMeta\n      __typename\n    }\n    wrapBack: items(first: $first) @include(if: $firstYes) {\n      total\n      ...MediaViewerListMeta\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment MediaViewerListMeta on ListConnection {\n  pageInfo {\n    endCursor\n    hasNextPage\n    hasPreviousPage\n    startCursor\n    __typename\n  }\n  edges {\n    position\n    cursor\n    node {\n      item {\n        ...MediaViewerImageMeta\n        ...MediaSheetImageMeta\n        __typename\n      }\n      ...MediaSheetListItemMeta\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment MediaViewerImageMeta on Image {\n  id\n  url\n  height\n  width\n  caption {\n    plainText\n    __typename\n  }\n}\n\nfragment MediaSheetImageMeta on Image {\n  copyright\n  createdBy\n  caption {\n    plaidHtml\n    __typename\n  }\n  titles {\n    id\n    titleText {\n      text\n      __typename\n    }\n    __typename\n  }\n  source {\n    attributionUrl\n    text\n    banner {\n      url\n      attributionUrl\n      __typename\n    }\n    __typename\n  }\n  names {\n    id\n    nameText {\n      text\n      __typename\n    }\n    __typename\n  }\n  countries {\n    text\n    __typename\n  }\n  languages {\n    text\n    __typename\n  }\n  correctionLink(relatedId: $id, contributionContext: {isInIframe: true, returnUrl: \"https://www.imdb.com/close_me\", business: \"consumer\"}) {\n    url\n    __typename\n  }\n  reportingLink(relatedId: $id, contributionContext: {isInIframe: true, returnUrl: \"https://www.imdb.com/close_me\", business: \"consumer\"}) {\n    url\n    __typename\n  }\n}\n\nfragment MediaSheetListItemMeta on ListItemNode {\n  description {\n    originalText {\n      plaidHtml\n      __typename\n    }\n    __typename\n  }\n}\n");
-            JSONObject varObject = new JSONObject();
-            varObject.put("id", listId);
-            varObject.put("lastYes", true);
-            varObject.put("firstYes", true);
-            if (imageId != null)
-                varObject.put("jumpTo", imageId);
-            if (beforeId != null)
-                varObject.put("before", beforeId);
-            else if (afterId != null)
-                varObject.put("after", afterId);
-            if (first != null)
-                varObject.put("first", first);
-            else if (last != null)
-                varObject.put("last", last);
-
-            reqObject.put("variables", varObject);
-
-
+            reqObject.put("variables", initVariableObject(listId, imageId, beforeId, afterId, first, last));
             params = new StringEntity(reqObject.toString());
             httppost.addHeader("content-type", "application/json");
             httppost.setEntity(params);
@@ -255,73 +168,7 @@ public class ImdbImageController {
 
                             try {
                                 JSONObject item = node.getJSONObject("item");
-                                try {
-                                    image.setId(item.getString("id"));
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
-                                try {
-                                    image.setUrl(item.getString("url"));
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
-                                try {
-                                    image.setCaption(item.getJSONObject("caption").getString("plainText"));
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
-                                try {
-                                    image.setCopyRight(item.getString("copyright"));
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
-                                try {
-                                    image.setCreatedBy(item.getString("createdBy"));
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
-                                try {
-                                    List<ImageGallery.Image.LinkText> linkTexts = new ArrayList<>();
-                                    for (Object t : item.getJSONArray("titles")) {
-                                        ImageGallery.Image.LinkText linkText = new ImageGallery.Image.LinkText();
-                                        linkText.setId(((JSONObject) t).getString("id"));
-                                        linkText.setText(((JSONObject) t).getJSONObject("titleText").getString("text"));
-                                        linkTexts.add(linkText);
-                                    }
-                                    image.setTitles(linkTexts);
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
-                                try {
-                                    List<ImageGallery.Image.LinkText> linkTexts = new ArrayList<>();
-                                    for (Object t : item.getJSONArray("names")) {
-                                        ImageGallery.Image.LinkText linkText = new ImageGallery.Image.LinkText();
-                                        linkText.setId(((JSONObject) t).getString("id"));
-                                        linkText.setText(((JSONObject) t).getJSONObject("nameText").getString("text"));
-                                        linkTexts.add(linkText);
-                                    }
-                                    image.setNames(linkTexts);
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
-                                try {
-                                    List<String> stringList = new ArrayList<>();
-                                    for (Object t : item.getJSONArray("countries")) {
-                                        stringList.add(((JSONObject) t).getString("text"));
-                                    }
-                                    image.setCountries(stringList);
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
-                                try {
-                                    List<String> stringList = new ArrayList<>();
-                                    for (Object t : item.getJSONArray("languages")) {
-                                        stringList.add(((JSONObject) t).getString("text"));
-                                    }
-                                    image.setLanguages(stringList);
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
+                                setImageFields(image, item);
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
@@ -353,6 +200,25 @@ public class ImdbImageController {
         return new ApiResponse<>(imageGallery, null, true);
     }
 
+    private JSONObject initVariableObject(String id, String imageId, String beforeId, String afterId, Integer first, Integer last) {
+        JSONObject varObject = new JSONObject();
+        varObject.put("id", id);
+        varObject.put("lastYes", true);
+        varObject.put("firstYes", true);
+        if (imageId != null)
+            varObject.put("jumpTo", imageId);
+        if (beforeId != null)
+            varObject.put("before", beforeId);
+        else if (afterId != null)
+            varObject.put("after", afterId);
+        if (first != null)
+            varObject.put("first", first);
+        else if (last != null)
+            varObject.put("last", last);
+
+        return varObject;
+    }
+
     @GetMapping("/name/{nameId}/extra")
     ApiResponse<ImageGallery> fetchNameImagesExtra(
             @PathVariable("nameId") String nameId,
@@ -365,28 +231,11 @@ public class ImdbImageController {
         ImageGallery imageGallery = new ImageGallery();
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpPost httppost = new HttpPost(AppConstants.IMDB_URL_GRAPH_QL);
-        StringEntity params = null;
+        StringEntity params;
         try {
             JSONObject reqObject = new JSONObject();
             reqObject.put("query", "query NameImages($id: ID!, $before: ID, $after: ID, $jumpTo: ID, $first: Int, $last: Int, $lastYes: Boolean!, $firstYes: Boolean!) {\n  name(id: $id) {\n    nameText {\n      text\n      __typename\n    }\n    meta {\n      publicationStatus\n      __typename\n    }\n    images(first: $first, after: $after, jumpTo: $jumpTo) @include(if: $firstYes) {\n      total\n      ...MediaViewerMeta\n      __typename\n    }\n    wrapFront: images(last: $last, before: $before) @include(if: $lastYes) {\n      total\n      ...MediaViewerMeta\n      __typename\n    }\n    wrapBack: images(first: $first) @include(if: $firstYes) {\n      total\n      ...MediaViewerMeta\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment MediaViewerMeta on ImageConnection {\n  pageInfo {\n    endCursor\n    hasNextPage\n    hasPreviousPage\n    startCursor\n    __typename\n  }\n  edges {\n    position\n    cursor\n    node {\n      ...MediaViewerImageMeta\n      ...MediaSheetImageMeta\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment MediaViewerImageMeta on Image {\n  id\n  url\n  height\n  width\n  caption {\n    plainText\n    __typename\n  }\n}\n\nfragment MediaSheetImageMeta on Image {\n  copyright\n  createdBy\n  caption {\n    plaidHtml\n    __typename\n  }\n  titles {\n    id\n    titleText {\n      text\n      __typename\n    }\n    __typename\n  }\n  source {\n    attributionUrl\n    text\n    banner {\n      url\n      attributionUrl\n      __typename\n    }\n    __typename\n  }\n  names {\n    id\n    nameText {\n      text\n      __typename\n    }\n    __typename\n  }\n  countries {\n    text\n    __typename\n  }\n  languages {\n    text\n    __typename\n  }\n  correctionLink(relatedId: $id, contributionContext: {isInIframe: true, returnUrl: \"https://www.imdb.com/close_me\", business: \"consumer\"}) {\n    url\n    __typename\n  }\n  reportingLink(relatedId: $id, contributionContext: {isInIframe: true, returnUrl: \"https://www.imdb.com/close_me\", business: \"consumer\"}) {\n    url\n    __typename\n  }\n}\n");
-
-            JSONObject varObject = new JSONObject();
-            varObject.put("id", nameId);
-            varObject.put("lastYes", true);
-            varObject.put("firstYes", true);
-            if (imageId != null)
-                varObject.put("jumpTo", imageId);
-            if (beforeId != null)
-                varObject.put("before", beforeId);
-            else if (afterId != null)
-                varObject.put("after", afterId);
-            if (first != null)
-                varObject.put("first", first);
-            else if (last != null)
-                varObject.put("last", last);
-
-            reqObject.put("variables", varObject);
-
+            reqObject.put("variables", initVariableObject(nameId,imageId,beforeId,afterId,first,last));
             params = new StringEntity(reqObject.toString());
             httppost.addHeader("content-type", "application/json");
             httppost.setEntity(params);
@@ -435,84 +284,10 @@ public class ImdbImageController {
 
                         try {
                             JSONObject item = edge.getJSONObject("node");
-                            try {
-                                image.setId(item.getString("id"));
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                            try {
-                                image.setUrl(item.getString("url"));
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                            try {
-                                image.setCaption(item.getJSONObject("caption").getString("plainText"));
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                            try {
-                                image.setCopyRight(item.getString("copyright"));
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                            try {
-                                image.setCreatedBy(item.getString("createdBy"));
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                            try {
-                                List<ImageGallery.Image.LinkText> linkTexts = new ArrayList<>();
-                                for (Object t : item.getJSONArray("titles")) {
-                                    ImageGallery.Image.LinkText linkText = new ImageGallery.Image.LinkText();
-                                    linkText.setId(((JSONObject) t).getString("id"));
-                                    linkText.setText(((JSONObject) t).getJSONObject("titleText").getString("text"));
-                                    linkTexts.add(linkText);
-                                }
-                                image.setTitles(linkTexts);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                            try {
-                                List<ImageGallery.Image.LinkText> linkTexts = new ArrayList<>();
-                                for (Object t : item.getJSONArray("names")) {
-                                    ImageGallery.Image.LinkText linkText = new ImageGallery.Image.LinkText();
-                                    linkText.setId(((JSONObject) t).getString("id"));
-                                    linkText.setText(((JSONObject) t).getJSONObject("nameText").getString("text"));
-                                    linkTexts.add(linkText);
-                                }
-                                image.setNames(linkTexts);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                            try {
-                                List<String> stringList = new ArrayList<>();
-                                for (Object t : item.getJSONArray("countries")) {
-                                    stringList.add(((JSONObject) t).getString("text"));
-                                }
-                                image.setCountries(stringList);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                            try {
-                                List<String> stringList = new ArrayList<>();
-                                for (Object t : item.getJSONArray("languages")) {
-                                    stringList.add(((JSONObject) t).getString("text"));
-                                }
-                                image.setLanguages(stringList);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
+                            setImageFields(image, item);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
-
-//                        try {
-//                            JSONObject description = node.getJSONObject("description");
-//                            image.setDescriptionHtml(description.getJSONObject("originalText").getString("plaidHtml"));
-//                        } catch (Exception e) {
-//                            e.printStackTrace();
-//                        }
-
 
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -530,6 +305,114 @@ public class ImdbImageController {
         }
 
         return new ApiResponse<>(imageGallery, null, true);
+    }
+
+    private void extractHeaderTitle(ImageList imageGallery, Document doc) {
+        try {
+            imageGallery.setTitle(doc.getElementsByClass("subpage_title_block").get(0).getElementsByTag("h3").text());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            imageGallery.setSubtitle(generateImage(doc.getElementsByClass("subpage_title_block").get(0).getElementsByTag("a").get(0).getElementsByTag("img").attr("src"), 0, 0));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        try {
+            imageGallery.setImages(extractImages(doc));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void setImageFields(ImageGallery.Image image, JSONObject item) {
+        try {
+            image.setId(item.getString("id"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            image.setUrl(item.getString("url"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            image.setCaption(item.getJSONObject("caption").getString("plainText"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            image.setCopyRight(item.getString("copyright"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            image.setCreatedBy(item.getString("createdBy"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            List<ImageGallery.Image.LinkText> linkTexts = new ArrayList<>();
+            for (Object t : item.getJSONArray("titles")) {
+                ImageGallery.Image.LinkText linkText = new ImageGallery.Image.LinkText();
+                linkText.setId(((JSONObject) t).getString("id"));
+                linkText.setText(((JSONObject) t).getJSONObject("titleText").getString("text"));
+                linkTexts.add(linkText);
+            }
+            image.setTitles(linkTexts);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            List<ImageGallery.Image.LinkText> linkTexts = new ArrayList<>();
+            for (Object t : item.getJSONArray("names")) {
+                ImageGallery.Image.LinkText linkText = new ImageGallery.Image.LinkText();
+                linkText.setId(((JSONObject) t).getString("id"));
+                linkText.setText(((JSONObject) t).getJSONObject("nameText").getString("text"));
+                linkTexts.add(linkText);
+            }
+            image.setNames(linkTexts);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            List<String> stringList = new ArrayList<>();
+            for (Object t : item.getJSONArray("countries")) {
+                stringList.add(((JSONObject) t).getString("text"));
+            }
+            image.setCountries(stringList);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            List<String> stringList = new ArrayList<>();
+            for (Object t : item.getJSONArray("languages")) {
+                stringList.add(((JSONObject) t).getString("text"));
+            }
+            image.setLanguages(stringList);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private List<ImageList.Image> extractImages(Document doc) {
+        List<ImageList.Image> images = new ArrayList<>();
+
+        for (Element element : doc.getElementsByClass("media_index_thumb_list").get(0).getElementsByTag("a")) {
+            try {
+                ImageList.Image image = new ImageList.Image();
+                image.setId(extractImageId(element.attr("href")));
+                image.setUrl(generateImage(element.getElementsByTag("img").get(0).attr("src"), 512, 512));
+                images.add(image);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        return images;
     }
 
 }

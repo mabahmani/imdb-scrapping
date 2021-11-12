@@ -3,30 +3,19 @@ package ir.mab.imdbscrapping.controller;
 import ir.mab.imdbscrapping.model.ApiResponse;
 import ir.mab.imdbscrapping.model.Event;
 import ir.mab.imdbscrapping.model.EventSummary;
-import ir.mab.imdbscrapping.model.News;
 import ir.mab.imdbscrapping.util.AppConstants;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @RestController
 @RequestMapping(path = AppConstants.Api.EVENTS)
@@ -105,64 +94,20 @@ public class ImdbEventsController {
                                         try {
                                             List<Event.Award.AwardCategory.AwardNomination.Nominee> nominees = new ArrayList<>();
                                             for (Object nomineeObject: awardNominationJsonObject.getJSONArray("primaryNominees")){
-                                                JSONObject nomineeJsonObject = (JSONObject) nomineeObject;
-                                                Event.Award.AwardCategory.AwardNomination.Nominee nominee = new Event.Award.AwardCategory.AwardNomination.Nominee();
-                                                try {
-                                                    nominee.setId(nomineeJsonObject.getString("const"));
-                                                }catch (Exception e){
-                                                    e.printStackTrace();
-                                                }
-                                                try {
-                                                    nominee.setImageUrl(nomineeJsonObject.getString("imageUrl"));
-                                                }catch (Exception e){
-                                                    e.printStackTrace();
-                                                }
-                                                try {
-                                                    nominee.setNote(nomineeJsonObject.getString("note"));
-                                                }catch (Exception e){
-                                                    e.printStackTrace();
-                                                }
-                                                try {
-                                                    nominee.setName(nomineeJsonObject.getString("name"));
-                                                }catch (Exception e){
-                                                    e.printStackTrace();
-                                                }
-                                                nominees.add(nominee);
+                                                extractNominees(nominees,nomineeObject);
                                             }
                                             awardNomination.setPrimaryNominees(nominees);
                                         }catch (Exception e){
-                                            e.printStackTrace();;
+                                            e.printStackTrace();
                                         }
                                         try {
                                             List<Event.Award.AwardCategory.AwardNomination.Nominee> nominees = new ArrayList<>();
                                             for (Object nomineeObject: awardNominationJsonObject.getJSONArray("secondaryNominees")){
-                                                JSONObject nomineeJsonObject = (JSONObject) nomineeObject;
-                                                Event.Award.AwardCategory.AwardNomination.Nominee nominee = new Event.Award.AwardCategory.AwardNomination.Nominee();
-                                                try {
-                                                    nominee.setId(nomineeJsonObject.getString("const"));
-                                                }catch (Exception e){
-                                                    e.printStackTrace();
-                                                }
-                                                try {
-                                                    nominee.setImageUrl(nomineeJsonObject.getString("imageUrl"));
-                                                }catch (Exception e){
-                                                    e.printStackTrace();
-                                                }
-                                                try {
-                                                    nominee.setNote(nomineeJsonObject.getString("note"));
-                                                }catch (Exception e){
-                                                    e.printStackTrace();
-                                                }
-                                                try {
-                                                    nominee.setName(nomineeJsonObject.getString("name"));
-                                                }catch (Exception e){
-                                                    e.printStackTrace();
-                                                }
-                                                nominees.add(nominee);
+                                                extractNominees(nominees,nomineeObject);
                                             }
                                             awardNomination.setSecondaryNominees(nominees);
                                         }catch (Exception e){
-                                            e.printStackTrace();;
+                                            e.printStackTrace();
                                         }
                                         try {
                                             List<String> stringList = new ArrayList<>();
@@ -178,7 +123,7 @@ public class ImdbEventsController {
                                             }
                                             awardNomination.setSongNames(stringList);
                                         }catch (Exception e){
-                                            e.printStackTrace();;
+                                            e.printStackTrace();
                                         }
                                         try {
                                             List<String> stringList = new ArrayList<>();
@@ -194,7 +139,7 @@ public class ImdbEventsController {
                                             }
                                             awardNomination.setEpisodeNames(stringList);
                                         }catch (Exception e){
-                                            e.printStackTrace();;
+                                            e.printStackTrace();
                                         }
 
                                         awardNominations.add(awardNomination);
@@ -259,6 +204,32 @@ public class ImdbEventsController {
         }
 
         return new ApiResponse<>(events, null, true);
+    }
+
+    private void extractNominees(List<Event.Award.AwardCategory.AwardNomination.Nominee> nominees, Object nomineeObject) {
+        JSONObject nomineeJsonObject = (JSONObject) nomineeObject;
+        Event.Award.AwardCategory.AwardNomination.Nominee nominee = new Event.Award.AwardCategory.AwardNomination.Nominee();
+        try {
+            nominee.setId(nomineeJsonObject.getString("const"));
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        try {
+            nominee.setImageUrl(nomineeJsonObject.getString("imageUrl"));
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        try {
+            nominee.setNote(nomineeJsonObject.getString("note"));
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        try {
+            nominee.setName(nomineeJsonObject.getString("name"));
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        nominees.add(nominee);
     }
 
 }

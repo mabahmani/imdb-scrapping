@@ -1,8 +1,6 @@
 package ir.mab.imdbscrapping.controller;
 
 import ir.mab.imdbscrapping.model.ApiResponse;
-import ir.mab.imdbscrapping.model.Home;
-import ir.mab.imdbscrapping.model.HomeGraphQl;
 import ir.mab.imdbscrapping.model.Trailer;
 import ir.mab.imdbscrapping.util.AppConstants;
 import org.apache.http.HttpResponse;
@@ -13,8 +11,6 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,7 +18,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 @RestController
@@ -31,11 +26,11 @@ public class ImdbTrailerController {
 
     @GetMapping("/trending")
     ApiResponse<List<Trailer>> fetchTrendingTrailers() {
-        List<Trailer> trailers = new ArrayList<>();
+        List<Trailer> trailers;
 
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpPost httppost = new HttpPost(AppConstants.IMDB_URL_GRAPH_QL);
-        StringEntity params = null;
+        StringEntity params;
         try {
 
             JSONObject reqObject = new JSONObject();
@@ -59,11 +54,11 @@ public class ImdbTrailerController {
 
     @GetMapping("/anticipated")
     ApiResponse<List<Trailer>> fetchMostAnticipatedTrailers() {
-        List<Trailer> trailers = new ArrayList<>();
+        List<Trailer> trailers;
 
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpPost httppost = new HttpPost(AppConstants.IMDB_URL_GRAPH_QL);
-        StringEntity params = null;
+        StringEntity params;
         try {
             LocalDate currentDate = LocalDate.now();
             String start = String.format("%d-%02d-%02d", currentDate.getYear() ,currentDate.getMonthValue(), currentDate.getDayOfMonth());
@@ -97,11 +92,11 @@ public class ImdbTrailerController {
 
     @GetMapping("/popular")
     ApiResponse<List<Trailer>> fetchMostPopularTrailers() {
-        List<Trailer> trailers = new ArrayList<>();
+        List<Trailer> trailers;
 
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpPost httppost = new HttpPost(AppConstants.IMDB_URL_GRAPH_QL);
-        StringEntity params = null;
+        StringEntity params;
         try {
             LocalDate currentDate = LocalDate.now();
             String end = String.format("%d-%02d-%02d", currentDate.getYear() ,currentDate.getMonthValue(), currentDate.getDayOfMonth());
@@ -133,11 +128,11 @@ public class ImdbTrailerController {
 
     @GetMapping("/recent")
     ApiResponse<List<Trailer>> fetchMostRecentTrailers() {
-        List<Trailer> trailers = new ArrayList<>();
+        List<Trailer> trailers;
 
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpPost httppost = new HttpPost(AppConstants.IMDB_URL_GRAPH_QL);
-        StringEntity params = null;
+        StringEntity params;
         try {
 
             JSONObject reqObject = new JSONObject();

@@ -59,7 +59,7 @@ public class ImdbHomeController {
 
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpPost httppost = new HttpPost(AppConstants.IMDB_URL_GRAPH_QL);
-        StringEntity params = null;
+        StringEntity params;
         try {
             LocalDate currentDate = LocalDate.now();
             String today = String.format("--%02d-%02d", currentDate.getMonthValue(), currentDate.getDayOfMonth());

@@ -1,21 +1,16 @@
 package ir.mab.imdbscrapping.controller;
 
-import ir.mab.imdbscrapping.model.*;
+import ir.mab.imdbscrapping.model.ApiResponse;
+import ir.mab.imdbscrapping.model.News;
 import ir.mab.imdbscrapping.util.AppConstants;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static ir.mab.imdbscrapping.util.Utils.generateImage;
 

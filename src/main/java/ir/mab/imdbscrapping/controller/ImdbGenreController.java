@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @RestController
 @RequestMapping(path = AppConstants.Api.GENRE)
@@ -24,7 +25,7 @@ public class ImdbGenreController {
             Document doc = Jsoup.connect(AppConstants.IMDB_GENRE).get();
             List<Genre> genres = new ArrayList<>();
             try {
-                for (Element element : doc.getElementById("main").getElementsByClass("ninja_image")) {
+                for (Element element : Objects.requireNonNull(doc.getElementById("main")).getElementsByClass("ninja_image")) {
                     if (!element.hasClass("ninja_image_relative_padding")){
                         Genre genre = new Genre();
 

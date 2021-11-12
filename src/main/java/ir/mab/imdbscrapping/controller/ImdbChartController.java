@@ -1,18 +1,20 @@
 package ir.mab.imdbscrapping.controller;
 
-import ir.mab.imdbscrapping.model.*;
+import ir.mab.imdbscrapping.model.ApiResponse;
+import ir.mab.imdbscrapping.model.BoxOffice;
+import ir.mab.imdbscrapping.model.MovieSummary;
 import ir.mab.imdbscrapping.util.AppConstants;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Objects;
 
 import static ir.mab.imdbscrapping.util.Utils.extractTitleId;
 import static ir.mab.imdbscrapping.util.Utils.generateImage;
@@ -26,7 +28,7 @@ public class ImdbChartController {
         List<MovieSummary> movies = new ArrayList<>();
         try {
             Document doc = Jsoup.connect(AppConstants.IMDB_TOP_250).get();
-            return extractTop250(movies, doc);
+            return extractTitles(movies, doc);
         } catch (IOException e) {
             return new ApiResponse<>(null, e.getMessage(), false);
         }
@@ -37,7 +39,7 @@ public class ImdbChartController {
         List<MovieSummary> movies = new ArrayList<>();
         try {
             Document doc = Jsoup.connect(AppConstants.IMDB_POPULAR).get();
-            return extractTop250(movies, doc);
+            return extractTitles(movies, doc);
         } catch (IOException e) {
             return new ApiResponse<>(null, e.getMessage(), false);
         }
@@ -48,7 +50,7 @@ public class ImdbChartController {
         List<MovieSummary> movies = new ArrayList<>();
         try {
             Document doc = Jsoup.connect(AppConstants.IMDB_POPULAR_TV).get();
-            return extractTop250(movies, doc);
+            return extractTitles(movies, doc);
         } catch (IOException e) {
             return new ApiResponse<>(null, e.getMessage(), false);
         }
@@ -59,7 +61,7 @@ public class ImdbChartController {
         List<MovieSummary> movies = new ArrayList<>();
         try {
             Document doc = Jsoup.connect(AppConstants.IMDB_BOTTOM_100).get();
-            return extractTop250(movies, doc);
+            return extractTitles(movies, doc);
         } catch (IOException e) {
             return new ApiResponse<>(null, e.getMessage(), false);
         }
@@ -71,7 +73,7 @@ public class ImdbChartController {
 
         try {
             Document doc = Jsoup.connect(AppConstants.IMDB_TOP_TV_250).get();
-            return extractTop250(movies, doc);
+            return extractTitles(movies, doc);
         } catch (IOException e) {
             return new ApiResponse<>(null, e.getMessage(), false);
         }
@@ -92,7 +94,7 @@ public class ImdbChartController {
         }
     }
 
-    private ApiResponse<List<MovieSummary>> extractTop250(List<MovieSummary> movies, Document doc) {
+    private ApiResponse<List<MovieSummary>> extractTitles(List<MovieSummary> movies, Document doc) {
         try {
             for (Element element : doc.getElementsByClass("lister-list").get(0).getElementsByTag("tr")) {
 
@@ -109,7 +111,7 @@ public class ImdbChartController {
                         e.printStackTrace();
                     }
                     try {
-                        movieSummary.setImdbRating(Double.valueOf(posterColumn.selectFirst("[name=ir]").attr("data-value")));
+                        movieSummary.setImdbRating(Double.valueOf(Objects.requireNonNull(posterColumn.selectFirst("[name=ir]")).attr("data-value")));
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -119,7 +121,7 @@ public class ImdbChartController {
                         e.printStackTrace();
                     }
                     try {
-                        movieSummary.setRank(Integer.valueOf(posterColumn.selectFirst("[name=rk]").attr("data-value")));
+                        movieSummary.setRank(Integer.valueOf(Objects.requireNonNull(posterColumn.selectFirst("[name=rk]")).attr("data-value")));
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -129,7 +131,7 @@ public class ImdbChartController {
                         e.printStackTrace();
                     }
                     try {
-                        movieSummary.setNumberOfRating(Long.valueOf(posterColumn.selectFirst("[name=nv]").attr("data-value")));
+                        movieSummary.setNumberOfRating(Long.valueOf(Objects.requireNonNull(posterColumn.selectFirst("[name=nv]")).attr("data-value")));
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -161,13 +163,13 @@ public class ImdbChartController {
     private BoxOffice getBoxOffice(Document doc) {
         BoxOffice boxOffice = new BoxOffice();
         try {
-            boxOffice.setWeekendDate(doc.getElementById("boxoffice").getElementsByTag("h4").text());
+            boxOffice.setWeekendDate(Objects.requireNonNull(doc.getElementById("boxoffice")).getElementsByTag("h4").text());
         }catch (Exception e){
             e.printStackTrace();
         }
         try {
             List<BoxOffice.BoxOfficeTitle> boxOfficeTitles = new ArrayList<>();
-            for (Element element: doc.getElementById("boxoffice").getElementsByClass("chart").get(0).getElementsByTag("tbody").get(0).getElementsByTag("tr")){
+            for (Element element: Objects.requireNonNull(doc.getElementById("boxoffice")).getElementsByClass("chart").get(0).getElementsByTag("tbody").get(0).getElementsByTag("tr")){
                 BoxOffice.BoxOfficeTitle boxOfficeTitle = new BoxOffice.BoxOfficeTitle();
                 try {
                     boxOfficeTitle.setCover(generateImage(element.getElementsByClass("posterColumn").get(0).getElementsByTag("img").attr("src"),180,268));
@@ -175,7 +177,7 @@ public class ImdbChartController {
                     e.printStackTrace();
                 }
                 try {
-                    boxOfficeTitle.setTitle(element.getElementsByClass("titleColumn").get(0).getElementsByTag("a").first().ownText());
+                    boxOfficeTitle.setTitle(Objects.requireNonNull(element.getElementsByClass("titleColumn").get(0).getElementsByTag("a").first()).ownText());
                 }catch (Exception e){
                     e.printStackTrace();
                 }

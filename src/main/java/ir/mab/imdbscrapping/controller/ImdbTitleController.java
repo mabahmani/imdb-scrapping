@@ -11,8 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Objects;
 
 import static ir.mab.imdbscrapping.util.Utils.*;
 
@@ -94,7 +93,7 @@ public class ImdbTitleController {
             }
             try {
                 List<FullCredits.Credit> credits = new ArrayList<>();
-                for (Element creditElement: doc.getElementById("fullcredits_content").getElementsByTag("h4")){
+                for (Element creditElement: Objects.requireNonNull(doc.getElementById("fullcredits_content")).getElementsByTag("h4")){
                     FullCredits.Credit credit = new FullCredits.Credit();
                     try {
                         credit.setTitle(creditElement.text());
@@ -200,7 +199,7 @@ public class ImdbTitleController {
             }
             try {
                 List<TechnicalSpecifications.Spec> specs = new ArrayList<>();
-                for (Element specElement: doc.getElementById("technical_content").getElementsByClass("dataTable").get(0).getElementsByTag("tr")){
+                for (Element specElement: Objects.requireNonNull(doc.getElementById("technical_content")).getElementsByClass("dataTable").get(0).getElementsByTag("tr")){
                     TechnicalSpecifications.Spec spec = new TechnicalSpecifications.Spec();
                     try {
                         spec.setTitle(specElement.getElementsByTag("td").get(0).text());
@@ -247,7 +246,7 @@ public class ImdbTitleController {
             }
             try {
                 List<Faqs.Faq> faqList = new ArrayList<>();
-                for (Element faqElement: doc.getElementById("faq-no-spoilers").getElementsByTag("li")){
+                for (Element faqElement: Objects.requireNonNull(doc.getElementById("faq-no-spoilers")).getElementsByTag("li")){
                     Faqs.Faq faq = new Faqs.Faq();
                     try {
                         faq.setQuestion(faqElement.getElementsByClass("faq-question").text());
@@ -255,7 +254,7 @@ public class ImdbTitleController {
                         e.printStackTrace();
                     }
                     try {
-                        faq.setAnswer(faqElement.getElementsByClass("ipl-hideable-container").get(0).getElementsByTag("p").first().ownText());
+                        faq.setAnswer(Objects.requireNonNull(faqElement.getElementsByClass("ipl-hideable-container").get(0).getElementsByTag("p").first()).ownText());
                     }catch (Exception e){
                         e.printStackTrace();
                     }
@@ -268,7 +267,7 @@ public class ImdbTitleController {
             }
             try {
                 List<Faqs.Faq> faqList = new ArrayList<>();
-                for (Element faqElement: doc.getElementById("faq-spoilers").getElementsByTag("li")){
+                for (Element faqElement: Objects.requireNonNull(doc.getElementById("faq-spoilers")).getElementsByTag("li")){
                     Faqs.Faq faq = new Faqs.Faq();
                     try {
                         faq.setQuestion(faqElement.getElementsByClass("faq-question").text());
@@ -276,7 +275,7 @@ public class ImdbTitleController {
                         e.printStackTrace();
                     }
                     try {
-                        faq.setAnswer(faqElement.getElementsByClass("ipl-hideable-container").get(0).getElementsByTag("p").first().ownText());
+                        faq.setAnswer(Objects.requireNonNull(faqElement.getElementsByClass("ipl-hideable-container").get(0).getElementsByTag("p").first()).ownText());
                     }catch (Exception e){
                         e.printStackTrace();
                     }
@@ -473,7 +472,7 @@ public class ImdbTitleController {
                         try {
                             List<MovieAwards.Event.Award> awards = new ArrayList<>();
                             MovieAwards.Event.Award award = null;
-                            for (Element tr: eventElement.nextElementSibling().getElementsByTag("tr")){
+                            for (Element tr: Objects.requireNonNull(eventElement.nextElementSibling()).getElementsByTag("tr")){
 
                                 if (!tr.getElementsByClass("title_award_outcome").isEmpty()){
                                     award = new MovieAwards.Event.Award();
@@ -525,7 +524,7 @@ public class ImdbTitleController {
                                     e.printStackTrace();
                                 }
 
-                                award.getAwardDescriptions().add(awardDescription);
+                                Objects.requireNonNull(award).getAwardDescriptions().add(awardDescription);
                             }
 
                             event.setAwards(awards);
@@ -774,7 +773,7 @@ public class ImdbTitleController {
                     person.setId(extractNameId(element.getElementsByAttributeValue("data-testid", "title-cast-item__actor").attr("href")));
                     person.setLink(AppConstants.IMDB_URL + element.getElementsByAttributeValue("data-testid", "title-cast-item__actor").attr("href"));
                     person.setRealName(element.getElementsByAttributeValue("data-testid", "title-cast-item__actor").text());
-                    person.setMovieName(element.getElementsByAttributeValue("data-testid", "cast-item-characters-link").get(0).getElementsByTag("span").first().text());
+                    person.setMovieName(Objects.requireNonNull(element.getElementsByAttributeValue("data-testid", "cast-item-characters-link").get(0).getElementsByTag("span").first()).text());
 
                     topCasts.add(person);
                 } catch (Exception e) {
@@ -895,7 +894,7 @@ public class ImdbTitleController {
             e.printStackTrace();
         }
         try {
-            overview.setTrailerDuration(doc.getElementsByAttributeValue("data-testid", "hero-media__slate-overlay-text").get(0).parent().getElementsByTag("span").get(1).text());
+            overview.setTrailerDuration(Objects.requireNonNull(doc.getElementsByAttributeValue("data-testid", "hero-media__slate-overlay-text").get(0).parent()).getElementsByTag("span").get(1).text());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -932,7 +931,7 @@ public class ImdbTitleController {
             e.printStackTrace();
         }
         try {
-            overview.setNumberOfRate(doc.getElementsByAttributeValue("data-testid", "hero-rating-bar__aggregate-rating__score").get(0).parent().getAllElements().get(5).getAllElements().get(0).text());
+            overview.setNumberOfRate(Objects.requireNonNull(doc.getElementsByAttributeValue("data-testid", "hero-rating-bar__aggregate-rating__score").get(0).parent()).getAllElements().get(5).getAllElements().get(0).text());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -984,30 +983,27 @@ public class ImdbTitleController {
         List<MovieDetails.LinkTitle> linkTitles = new ArrayList<>();
         if (e.getElementsByTag("ul").isEmpty()) {
             for (Element element : e.getElementsByTag("li")) {
-                MovieDetails.LinkTitle linkTitle = new MovieDetails.LinkTitle();
-                linkTitle.setTitle(element.getElementsByTag("a").text());
-                String link = element.getElementsByTag("a").attr("href");
-                if (link.startsWith("http"))
-                    linkTitle.setLink(element.getElementsByTag("a").attr("href"));
-                else
-                    linkTitle.setLink(AppConstants.IMDB_URL + element.getElementsByTag("a").attr("href"));
-                linkTitles.add(linkTitle);
+                extractLinkTitles(linkTitles, element);
             }
         } else {
             for (Element element : e.getElementsByTag("ul").get(0).getElementsByTag("li")) {
-                MovieDetails.LinkTitle linkTitle = new MovieDetails.LinkTitle();
-                linkTitle.setTitle(element.getElementsByTag("a").text());
-                String link = element.getElementsByTag("a").attr("href");
-                if (link.startsWith("http"))
-                    linkTitle.setLink(element.getElementsByTag("a").attr("href"));
-                else
-                    linkTitle.setLink(AppConstants.IMDB_URL + element.getElementsByTag("a").attr("href"));
-                linkTitles.add(linkTitle);
+                extractLinkTitles(linkTitles, element);
             }
         }
 
 
         return linkTitles;
+    }
+
+    private void extractLinkTitles(List<MovieDetails.LinkTitle> linkTitles, Element element) {
+        MovieDetails.LinkTitle linkTitle = new MovieDetails.LinkTitle();
+        linkTitle.setTitle(element.getElementsByTag("a").text());
+        String link = element.getElementsByTag("a").attr("href");
+        if (link.startsWith("http"))
+            linkTitle.setLink(element.getElementsByTag("a").attr("href"));
+        else
+            linkTitle.setLink(AppConstants.IMDB_URL + element.getElementsByTag("a").attr("href"));
+        linkTitles.add(linkTitle);
     }
 
     private void extractOverviewPersons(Elements elements, List<MovieDetails.Person> persons) {
@@ -1029,7 +1025,7 @@ public class ImdbTitleController {
         List<Calender> calenders = new ArrayList<>();
         try {
             Calender calender= new Calender();
-            for (Element element: doc.getElementById("main").children()){
+            for (Element element: Objects.requireNonNull(doc.getElementById("main")).children()){
                 try {
                     if (element.tagName().equals("h4")){
                         calender = new Calender();
@@ -1061,7 +1057,7 @@ public class ImdbTitleController {
         List<MovieComingSoon> movieComingSoonList = new ArrayList<>();
         try {
             MovieComingSoon movieComingSoon = new MovieComingSoon();
-            for (Element element: doc.getElementById("main").getElementsByClass("list").get(0).children()){
+            for (Element element: Objects.requireNonNull(doc.getElementById("main")).getElementsByClass("list").get(0).children()){
                 if (element.tagName().equals("h4")){
                     movieComingSoon = new MovieComingSoon();
                     movieComingSoonList.add(movieComingSoon);
