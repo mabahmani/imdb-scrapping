@@ -28,19 +28,125 @@ public class ImdbSearchController {
 
     @GetMapping("/titles")
     @ApiOperation("Search Titles (Movies, Tv Shows, ...)")
-    ApiResponse<List<MovieSearch>> searchMoviesByGenresAndKeywords(@RequestParam(value = "genre", required = false) String genre, @RequestParam(value = "keyword", required = false) String keyword, @RequestParam(value = "start", defaultValue = "1") String start) {
+    ApiResponse<List<MovieSearch>> searchTitles(
+            @ApiParam("Ex.The Godfather")
+            @RequestParam(value = "title", required = false) String title,
+            @ApiParam("Ex.feature,\ntv_movie,\ntv_series,\ntv_episode,\ntv_special,\ntv_miniseries,\ndocumentary,\nvideo_game,\nshort,\nvideo,\ntv_short,\npodcast_series,\npodcast_episode")
+            @RequestParam(value = "titleType", required = false) String titleType,
+            @ApiParam("Search Titles that release date are between two dates \n Format: YYYY-MM-DD, YYYY-MM, or YYYY \n Ex. 1999-01-01,2000-12-31")
+            @RequestParam(value = "releaseDate", required = false) String releaseDate,
+            @ApiParam("Search Titles that user rating are between two rates \n Format: 1.0,10 \n Ex. 5.6,7.8")
+            @RequestParam(value = "userRating", required = false) String userRating,
+            @ApiParam("Ex. Action,Drama, ...")
+            @RequestParam(value = "genre", required = false) String genre,
+            @ApiParam("Title Groups \n top_100,\ntop_250,\ntop_1000,\nbottom_100,\nbottom_250,\nbottom_1000\noscar_winner,\nemmy_winner,\ngolden_globe_winner,\noscar_nominee,\nemmy_nominee,\ngolden_globe_nominee,\nbest_picture_winner,\nbest_director_winner,\noscar_best_picture_nominees,\noscar_best_director_nominees,\nnational_film_preservation_board_winner,\nrazzie_winner,\nrazzie_nominee")
+            @RequestParam(value = "groups", required = false) String groups,
+            @ApiParam("Companies \n Ex. fox, sony, dreamworks, mgm, paramount, universal, disney, warner, ...")
+            @RequestParam(value = "companies", required = false) String companies,
+            @ApiParam("Certificates \n Ex. US%3AG,\n US%3APG,\n US%3APG-13,\n US%3AR,\n US%3ANC-17")
+            @RequestParam(value = "certificates", required = false) String certificates,
+            @ApiParam("Colors \n Ex. color,\n black_and_white,\n colorized,\n aces")
+            @RequestParam(value = "colors", required = false) String colors,
+            @ApiParam("Countries \n Ex. af, in, ir, ...")
+            @RequestParam(value = "countries", required = false) String countries,
+            @ApiParam("Search for a notable object, concept, style or aspect. \n Ex. superhero, ...")
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @ApiParam("Ex. fr, fa, en, ...")
+            @RequestParam(value = "languages", required = false) String languages,
+            @ApiParam("Filming Locations \n Ex. canada, iran, ...")
+            @RequestParam(value = "locations", required = false) String locations,
+            @ApiParam("Search for words that might appear in the plot summary.")
+            @RequestParam(value = "plot", required = false) String plot,
+            @ApiParam("Cast \n Ex. nm1869101")
+            @RequestParam(value = "role", required = false) String role,
+            @ApiParam("Runtime between Minutes \n Ex. 100,120")
+            @RequestParam(value = "runtime", required = false) String runtime,
+            @ApiParam("Sort \n moviemeter,acs \n moviemeter,desc \n alpha,asc \n alpha,desc \n user_rating,asc \n user_rating,desc \n num_votes,asc \n num_votes,desc \n boxoffice_gross_us,asc \n boxoffice_gross_us,desc \n runtime,asc \n runtime,desc \n year,asc \n year,desc \n release_date,asc \n release_date,desc")
+            @RequestParam(value = "sort", required = false) String sort,
+            @RequestParam(value = "start", defaultValue = "1") String start) {
         List<MovieSearch> movieSearches = new ArrayList<>();
         try {
-            Document doc;
-            if (genre != null && keyword != null) {
-                doc = Jsoup.connect(String.format(AppConstants.IMDB_SEARCH_TITLE + "?genres=%s&keywords=%s&start=%s", genre, keyword, start)).get();
-            } else if (genre != null) {
-                doc = Jsoup.connect(String.format(AppConstants.IMDB_SEARCH_TITLE + "?genres=%s&start=%s", genre, start)).get();
-            } else if (keyword != null) {
-                doc = Jsoup.connect(String.format(AppConstants.IMDB_SEARCH_TITLE + "?keywords=%s&start=%s", keyword, start)).get();
-            } else {
-                return new ApiResponse<>(null, "genre or keyword query needed!", false);
+
+            if (
+                    title == null &&
+                            titleType == null &&
+                            releaseDate == null &&
+                            userRating == null &&
+                            genre == null &&
+                            groups == null &&
+                            companies == null &&
+                            certificates == null &&
+                            colors == null &&
+                            countries == null &&
+                            keyword == null &&
+                            languages == null &&
+                            locations == null &&
+                            plot == null &&
+                            role == null &&
+                            runtime == null
+
+            ) {
+                return new ApiResponse<>(null, "at least one query needed!", false);
             }
+
+            StringBuilder reqUrl = new StringBuilder(AppConstants.IMDB_SEARCH_TITLE + "?");
+            reqUrl.append(String.format("start=%s", start));
+
+            if (title != null && !title.isEmpty()) {
+                reqUrl.append(String.format("&title=%s", title));
+            }
+            if (titleType != null && !titleType.isEmpty()) {
+                reqUrl.append(String.format("&title_type=%s", titleType));
+            }
+            if (releaseDate != null && !releaseDate.isEmpty()) {
+                reqUrl.append(String.format("&release_date=%s", releaseDate));
+            }
+            if (userRating != null && !userRating.isEmpty()) {
+                reqUrl.append(String.format("&user_rating=%s", userRating));
+            }
+            if (genre != null && !genre.isEmpty()) {
+                reqUrl.append(String.format("&genre=%s", genre));
+            }
+            if (groups != null && !groups.isEmpty()) {
+                reqUrl.append(String.format("&groups=%s", groups));
+            }
+            if (companies != null && !companies.isEmpty()) {
+                reqUrl.append(String.format("&companies=%s", companies));
+            }
+            if (certificates != null && !certificates.isEmpty()) {
+                reqUrl.append(String.format("&certificates=%s", certificates));
+            }
+            if (colors != null && !colors.isEmpty()) {
+                reqUrl.append(String.format("&colors=%s", colors));
+            }
+            if (countries != null && !countries.isEmpty()) {
+                reqUrl.append(String.format("&countries=%s", countries));
+            }
+            if (keyword != null && !keyword.isEmpty()) {
+                reqUrl.append(String.format("&keyword=%s", keyword));
+            }
+            if (languages != null && !languages.isEmpty()) {
+                reqUrl.append(String.format("&languages=%s", languages));
+            }
+            if (locations != null && !locations.isEmpty()) {
+                reqUrl.append(String.format("&locations=%s", locations));
+            }
+            if (plot != null && !plot.isEmpty()) {
+                reqUrl.append(String.format("&plot=%s", plot));
+            }
+            if (role != null && !role.isEmpty()) {
+                reqUrl.append(String.format("&role=%s", role));
+            }
+            if (runtime != null && !runtime.isEmpty()) {
+                reqUrl.append(String.format("&runtime=%s", runtime));
+            }
+            if (sort != null && !sort.isEmpty()) {
+                reqUrl.append(String.format("&sort=%s", sort));
+            }
+
+
+            Document doc = Jsoup.connect(reqUrl.toString()).get();
+
 
             try {
                 for (Element element : doc.getElementsByClass("lister-list").get(0).getElementsByClass("lister-item")) {
@@ -169,9 +275,9 @@ public class ImdbSearchController {
     ApiResponse<List<NameSearch>> searchNames(
             @ApiParam("Ex. Tom Hardy")
             @RequestParam(value = "name", required = false) String name,
-            @ApiParam("Names that birth date are between two dates \n Format: YYYY-MM-DD, YYYY-MM, or YYYY\n Ex. 1999-01-01,2000-12-31")
+            @ApiParam("Search Names that birth date are between two dates \n Format: YYYY-MM-DD, YYYY-MM, or YYYY\n Ex. 1999-01-01,2000-12-31")
             @RequestParam(value = "birthDate", required = false) String birthDate,
-            @ApiParam("Names that birth date are in this month/day\n Format: Format: MM-DD\n Ex. 10-02")
+            @ApiParam("Search Names that birth date are in this month/day\n Format: Format: MM-DD\n Ex. 10-02")
             @RequestParam(value = "birthMonthDay", required = false) String birthMonthDay,
             @ApiParam("Name Groups\n oscar_best_actress_nominees,\n oscar_best_actor_nominees,\n oscar_best_actress_winners,\n oscar_best_actor_winners,\n oscar_best_supporting_actress_nominees,\n oscar_best_supporting_actor_nominees,\n oscar_best_supporting_actress_winners,\n oscar_best_supporting_actor_winners,\n oscar_best_director_nominees,\n best_director_winner,\n oscar_winner,\n oscar_nominee")
             @RequestParam(value = "groups", required = false) String groups,
@@ -179,7 +285,7 @@ public class ImdbSearchController {
             @RequestParam(value = "starSign", required = false) String starSign,
             @ApiParam("Ex. Canada")
             @RequestParam(value = "birthPlace", required = false) String birthPlace,
-            @ApiParam("Names that death date are between two dates \n Format: YYYY-MM-DD, YYYY-MM, or YYYY\n Ex. 1999-01-01,2000-12-31")
+            @ApiParam("Search Names that death date are between two dates \n Format: YYYY-MM-DD, YYYY-MM, or YYYY\n Ex. 1999-01-01,2000-12-31")
             @RequestParam(value = "deathDate", required = false) String deathDate,
             @ApiParam("Ex. Canada")
             @RequestParam(value = "deathPlace", required = false) String deathPlace,
@@ -196,43 +302,43 @@ public class ImdbSearchController {
         try {
             StringBuilder reqUrl = new StringBuilder(AppConstants.IMDB_SEARCH_NAME + "?");
 
-            reqUrl.append(String.format("gender=%s",gender));
+            reqUrl.append(String.format("gender=%s", gender));
 
-            if (name != null && !name.isEmpty()){
-                reqUrl.append(String.format("&name=%s",name));
+            if (name != null && !name.isEmpty()) {
+                reqUrl.append(String.format("&name=%s", name));
             }
-            if (birthDate != null && !birthDate.isEmpty()){
-                reqUrl.append(String.format("&birth_date=%s",birthDate));
+            if (birthDate != null && !birthDate.isEmpty()) {
+                reqUrl.append(String.format("&birth_date=%s", birthDate));
             }
-            if (birthMonthDay != null && !birthMonthDay.isEmpty()){
-                reqUrl.append(String.format("&birth_monthday=%s",birthDate));
+            if (birthMonthDay != null && !birthMonthDay.isEmpty()) {
+                reqUrl.append(String.format("&birth_monthday=%s", birthDate));
             }
-            if (groups != null && !groups.isEmpty()){
-                reqUrl.append(String.format("&groups=%s",groups));
+            if (groups != null && !groups.isEmpty()) {
+                reqUrl.append(String.format("&groups=%s", groups));
             }
-            if (starSign != null && !starSign.isEmpty()){
-                reqUrl.append(String.format("&star_sign=%s",starSign));
+            if (starSign != null && !starSign.isEmpty()) {
+                reqUrl.append(String.format("&star_sign=%s", starSign));
             }
-            if (birthPlace != null && !birthPlace.isEmpty()){
-                reqUrl.append(String.format("&birth_place=%s",birthPlace));
+            if (birthPlace != null && !birthPlace.isEmpty()) {
+                reqUrl.append(String.format("&birth_place=%s", birthPlace));
             }
-            if (deathDate != null && !deathDate.isEmpty()){
-                reqUrl.append(String.format("&death_date=%s",deathDate));
+            if (deathDate != null && !deathDate.isEmpty()) {
+                reqUrl.append(String.format("&death_date=%s", deathDate));
             }
-            if (deathPlace != null && !deathPlace.isEmpty()){
-                reqUrl.append(String.format("&death_place=%s",deathPlace));
+            if (deathPlace != null && !deathPlace.isEmpty()) {
+                reqUrl.append(String.format("&death_place=%s", deathPlace));
             }
-            if (roles != null && !roles.isEmpty()){
-                reqUrl.append(String.format("&roles=%s",roles));
+            if (roles != null && !roles.isEmpty()) {
+                reqUrl.append(String.format("&roles=%s", roles));
             }
-            if (bio != null && !bio.isEmpty()){
-                reqUrl.append(String.format("&bio=%s",bio));
+            if (bio != null && !bio.isEmpty()) {
+                reqUrl.append(String.format("&bio=%s", bio));
             }
-            if (sort != null && !sort.isEmpty()){
-                reqUrl.append(String.format("&sort=%s",sort));
+            if (sort != null && !sort.isEmpty()) {
+                reqUrl.append(String.format("&sort=%s", sort));
             }
-            if (start != null && !start.isEmpty()){
-                reqUrl.append(String.format("&start=%s",start));
+            if (start != null && !start.isEmpty()) {
+                reqUrl.append(String.format("&start=%s", start));
             }
 
             Document doc = Jsoup.connect(reqUrl.toString()).get();
