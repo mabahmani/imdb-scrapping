@@ -28,7 +28,7 @@ import static ir.mab.imdbscrapping.util.Utils.generateImage;
 public class ImdbImageController {
 
     @GetMapping("/list/{listId}")
-    ApiResponse<ImageList> fetchListImages(@PathVariable("listId") String listId) {
+    ApiResponse<ImageList> fetchImagesOfList(@PathVariable("listId") String listId) {
         ImageList imageGallery = new ImageList();
         try {
             Document doc = Jsoup.connect(String.format(AppConstants.IMDB_LIST + "%s", listId)).get();
@@ -57,8 +57,8 @@ public class ImdbImageController {
         return new ApiResponse<>(imageGallery, null, true);
     }
 
-    @GetMapping("/name/{nameId}")
-    ApiResponse<ImageList> fetchNameImages(@PathVariable("nameId") String nameId, @RequestParam(value = "page", required = false) Integer page) {
+    @GetMapping("/names/{nameId}")
+    ApiResponse<ImageList> fetchListImagesOfName(@PathVariable("nameId") String nameId, @RequestParam(value = "page", required = false) Integer page) {
         ImageList imageGallery = new ImageList();
         try {
             Document doc;
@@ -77,8 +77,8 @@ public class ImdbImageController {
         return new ApiResponse<>(imageGallery, null, true);
     }
 
-    @GetMapping("/title/{titleId}")
-    ApiResponse<ImageList> fetchTitleImages(@PathVariable("titleId") String titleId, @RequestParam(value = "page", required = false) Integer page) {
+    @GetMapping("/titles/{titleId}")
+    ApiResponse<ImageList> fetchListImagesOfTitle(@PathVariable("titleId") String titleId, @RequestParam(value = "page", required = false) Integer page) {
         ImageList imageGallery = new ImageList();
         try {
             Document doc;
@@ -97,8 +97,8 @@ public class ImdbImageController {
         return new ApiResponse<>(imageGallery, null, true);
     }
 
-    @GetMapping("/list/{listId}/extra")
-    ApiResponse<ImageGallery> fetchListImagesExtra(
+    @GetMapping("/list/{listId}/slider")
+    ApiResponse<ImageGallery> fetchImagesOfListAsSliderWithDetails(
             @PathVariable("listId") String listId,
             @RequestParam(value = "imageId", required = false) String imageId,
             @RequestParam(value = "before", required = false) String beforeId,
@@ -200,27 +200,8 @@ public class ImdbImageController {
         return new ApiResponse<>(imageGallery, null, true);
     }
 
-    private JSONObject initVariableObject(String id, String imageId, String beforeId, String afterId, Integer first, Integer last) {
-        JSONObject varObject = new JSONObject();
-        varObject.put("id", id);
-        varObject.put("lastYes", true);
-        varObject.put("firstYes", true);
-        if (imageId != null)
-            varObject.put("jumpTo", imageId);
-        if (beforeId != null)
-            varObject.put("before", beforeId);
-        else if (afterId != null)
-            varObject.put("after", afterId);
-        if (first != null)
-            varObject.put("first", first);
-        else if (last != null)
-            varObject.put("last", last);
-
-        return varObject;
-    }
-
-    @GetMapping("/name/{nameId}/extra")
-    ApiResponse<ImageGallery> fetchNameImagesExtra(
+    @GetMapping("/names/{nameId}/slider")
+    ApiResponse<ImageGallery> fetchImagesOfNameAsSliderWithDetails(
             @PathVariable("nameId") String nameId,
             @RequestParam(value = "imageId", required = false) String imageId,
             @RequestParam(value = "before", required = false) String beforeId,
@@ -305,6 +286,25 @@ public class ImdbImageController {
         }
 
         return new ApiResponse<>(imageGallery, null, true);
+    }
+
+    private JSONObject initVariableObject(String id, String imageId, String beforeId, String afterId, Integer first, Integer last) {
+        JSONObject varObject = new JSONObject();
+        varObject.put("id", id);
+        varObject.put("lastYes", true);
+        varObject.put("firstYes", true);
+        if (imageId != null)
+            varObject.put("jumpTo", imageId);
+        if (beforeId != null)
+            varObject.put("before", beforeId);
+        else if (afterId != null)
+            varObject.put("after", afterId);
+        if (first != null)
+            varObject.put("first", first);
+        else if (last != null)
+            varObject.put("last", last);
+
+        return varObject;
     }
 
     private void extractHeaderTitle(ImageList imageGallery, Document doc) {

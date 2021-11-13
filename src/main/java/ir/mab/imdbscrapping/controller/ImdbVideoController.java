@@ -41,7 +41,7 @@ public class ImdbVideoController {
     }
 
     @GetMapping("/name/{nameId}/videogallery")
-    ApiResponse<VideoGallery> fetchNameVideos(
+    ApiResponse<VideoGallery> fetchVideosOfName(
             @PathVariable("nameId") String nameId,
             @RequestParam(value = "sort", required = false, defaultValue = "date") String sort,
             @RequestParam(value = "sortDir", required = false, defaultValue = "desc") String sortDir,
@@ -103,7 +103,7 @@ public class ImdbVideoController {
     }
 
     @GetMapping("/title/{titleID}/videogallery")
-    ApiResponse<VideoGallery> fetchTitleVideos(
+    ApiResponse<VideoGallery> fetchVideosOfTitle(
             @PathVariable("titleID") String titleID,
             @RequestParam(value = "sort", required = false, defaultValue = "date") String sort,
             @RequestParam(value = "sortDir", required = false, defaultValue = "desc") String sortDir,

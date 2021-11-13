@@ -24,7 +24,7 @@ import static ir.mab.imdbscrapping.util.Utils.generateImage;
 public class ImdbChartController {
 
     @GetMapping("/top250")
-    ApiResponse<List<MovieSummary>> fetchTop250Movies() {
+    ApiResponse<List<MovieSummary>> fetchTheTopRated250Movies() {
         List<MovieSummary> movies = new ArrayList<>();
         try {
             Document doc = Jsoup.connect(AppConstants.IMDB_TOP_250).get();
@@ -35,7 +35,7 @@ public class ImdbChartController {
     }
 
     @GetMapping("/popular")
-    ApiResponse<List<MovieSummary>> fetchPopularMovies() {
+    ApiResponse<List<MovieSummary>> fetchIMDbMostPopularMovies() {
         List<MovieSummary> movies = new ArrayList<>();
         try {
             Document doc = Jsoup.connect(AppConstants.IMDB_POPULAR).get();
@@ -46,7 +46,7 @@ public class ImdbChartController {
     }
 
     @GetMapping("/tv/popular")
-    ApiResponse<List<MovieSummary>> fetchPopularTvMovies() {
+    ApiResponse<List<MovieSummary>> fetchIMDbMostPopularTvShows() {
         List<MovieSummary> movies = new ArrayList<>();
         try {
             Document doc = Jsoup.connect(AppConstants.IMDB_POPULAR_TV).get();
@@ -57,7 +57,7 @@ public class ImdbChartController {
     }
 
     @GetMapping("/bottom100")
-    ApiResponse<List<MovieSummary>> fetchBottom100Movies() {
+    ApiResponse<List<MovieSummary>> fetchThe100LowestRatedMovies() {
         List<MovieSummary> movies = new ArrayList<>();
         try {
             Document doc = Jsoup.connect(AppConstants.IMDB_BOTTOM_100).get();
@@ -68,7 +68,7 @@ public class ImdbChartController {
     }
 
     @GetMapping("/tv/top250")
-    ApiResponse<List<MovieSummary>> fetchTopTv250Movies() {
+    ApiResponse<List<MovieSummary>> fetchTheTopRated250TVShows() {
         List<MovieSummary> movies = new ArrayList<>();
 
         try {
@@ -80,7 +80,7 @@ public class ImdbChartController {
     }
 
     @GetMapping("/boxoffice")
-    ApiResponse<BoxOffice> fetchBoxOffice() {
+    ApiResponse<BoxOffice> fetchWeeklyWinnersAtTheBoxOffice() {
 
         try {
             Document doc = Jsoup.connect(AppConstants.IMDB_BOX_OFFICE).get();

@@ -26,7 +26,7 @@ import static ir.mab.imdbscrapping.util.Utils.*;
 public class ImdbNameController {
 
     @GetMapping("/{nameId}")
-    ApiResponse<NameDetails> fetchNameDetails(@PathVariable("nameId") String nameId) {
+    ApiResponse<NameDetails> fetchDetailsOfName(@PathVariable("nameId") String nameId) {
         NameDetails nameDetails = new NameDetails();
         try {
             Document doc = Jsoup.connect(String.format(AppConstants.IMDB_NAME + "%s", nameId)).get();
@@ -287,7 +287,7 @@ public class ImdbNameController {
     }
 
     @GetMapping("/{nameId}/bio")
-    ApiResponse<NameBio> fetchNameBio(@PathVariable("nameId") String nameId) {
+    ApiResponse<NameBio> fetchBioOfName(@PathVariable("nameId") String nameId) {
         NameBio nameBio = new NameBio();
         try {
             Document doc = Jsoup.connect(String.format(AppConstants.IMDB_NAME + "%s/bio", nameId)).get();
@@ -399,7 +399,7 @@ public class ImdbNameController {
     }
 
     @GetMapping("/{nameId}/awards")
-    ApiResponse<NameAward> fetchNameAwards(@PathVariable("nameId") String nameId) {
+    ApiResponse<NameAward> fetchAwardsOfName(@PathVariable("nameId") String nameId) {
         NameAward nameAward = new NameAward();
         try {
             Document doc = Jsoup.connect(String.format(AppConstants.IMDB_NAME + "%s/awards", nameId)).get();

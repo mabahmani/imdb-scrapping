@@ -29,7 +29,7 @@ import java.util.List;
 public class ImdbHomeController {
 
     @GetMapping("/")
-    ApiResponse<Home> fetchHome() {
+    ApiResponse<Home> fetchIMDbHomePage() {
         Home home = new Home();
         try {
             Document doc = Jsoup.connect(AppConstants.IMDB_URL).get();
@@ -54,7 +54,7 @@ public class ImdbHomeController {
     }
 
     @GetMapping("/extra")
-    ApiResponse<HomeGraphQl> fetchHomeExtra() {
+    ApiResponse<HomeGraphQl> fetchIMDbHomePageExtra() {
         HomeGraphQl home = new HomeGraphQl();
 
         CloseableHttpClient httpClient = HttpClients.createDefault();

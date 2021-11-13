@@ -22,7 +22,7 @@ import java.util.List;
 public class ImdbEventsController {
 
     @GetMapping("/{eventId}/{year}")
-    ApiResponse<Event> fetchEventDetails(@PathVariable("eventId") String eventId,@PathVariable("year") String year) {
+    ApiResponse<Event> fetchEventWinnersAndDetails(@PathVariable("eventId") String eventId,@PathVariable("year") String year) {
         Event event = new Event();
         try {
             Document doc = Jsoup.connect(String.format(AppConstants.IMDB_EVENT + "%s/%s", eventId, year)).get();
@@ -175,7 +175,7 @@ public class ImdbEventsController {
     }
 
     @GetMapping("/")
-    ApiResponse<List<EventSummary>> fetchAllEvents() {
+    ApiResponse<List<EventSummary>> fetchACompleteListOfAwardsAndEvents() {
         List<EventSummary> events = new ArrayList<>();
 
         try {

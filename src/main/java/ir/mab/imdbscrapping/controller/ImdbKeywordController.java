@@ -18,7 +18,7 @@ import java.util.List;
 public class ImdbKeywordController {
 
     @GetMapping("/")
-    ApiResponse<List<String>> fetchKeywords(){
+    ApiResponse<List<String>> fetchListOfKeywords(){
         try {
             Document doc = Jsoup.connect(AppConstants.IMDB_KEYWORD).get();
             List<String> keywords = new ArrayList<>();

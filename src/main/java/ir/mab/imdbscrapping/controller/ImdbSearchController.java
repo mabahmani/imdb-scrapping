@@ -25,7 +25,7 @@ import static ir.mab.imdbscrapping.util.Utils.*;
 public class ImdbSearchController {
 
     @GetMapping("/titles")
-    ApiResponse<List<MovieSearch>> searchMoviesByGenreKeywords(@RequestParam(value = "genre", required = false) String genre, @RequestParam(value = "keyword", required = false) String keyword, @RequestParam(value = "start", defaultValue = "1") String start) {
+    ApiResponse<List<MovieSearch>> searchMoviesByGenresAndKeywords(@RequestParam(value = "genre", required = false) String genre, @RequestParam(value = "keyword", required = false) String keyword, @RequestParam(value = "start", defaultValue = "1") String start) {
         List<MovieSearch> movieSearches = new ArrayList<>();
         try {
             Document doc;
