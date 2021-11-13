@@ -5,7 +5,9 @@ import io.swagger.annotations.ApiParam;
 import ir.mab.imdbscrapping.model.ApiResponse;
 import ir.mab.imdbscrapping.model.MovieSearch;
 import ir.mab.imdbscrapping.model.NameSearch;
+import ir.mab.imdbscrapping.model.Suggestion;
 import ir.mab.imdbscrapping.util.AppConstants;
+import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -25,6 +27,107 @@ import static ir.mab.imdbscrapping.util.Utils.*;
 @RestController
 @RequestMapping(path = AppConstants.Api.SEARCH)
 public class ImdbSearchController {
+
+    @GetMapping("/")
+    @ApiOperation("Search All")
+    ApiResponse<Suggestion> search(
+            @ApiParam("a word or phrase that describe your search")
+            @RequestParam(value = "term") String term
+    ){
+        Suggestion suggestion = new Suggestion();
+        try {
+            Document doc = Jsoup.connect(String.format(AppConstants.IMDB_URL_SUGGESTION + "%s/%s.json",term.charAt(0),term)).ignoreContentType(true).get();
+            JSONObject response = new JSONObject(doc.body().text());
+            List<Suggestion.Data> dataList = new ArrayList<>();
+            for (Object o: response.getJSONArray("d")){
+                try {
+                    JSONObject dataObject = (JSONObject) o;
+                    Suggestion.Data data = new Suggestion.Data();
+                    try {
+                        data.setImage(dataObject.getJSONObject("i").getString("imageUrl"));
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    try {
+                        data.setId(dataObject.getString("id"));
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    try {
+                        data.setTitle(dataObject.getString("l"));
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    try {
+                        data.setType(dataObject.getString("q"));
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    try {
+                        data.setRank(dataObject.getInt("rank"));
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    try {
+                        data.setSubtitle(dataObject.getString("s"));
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    try {
+                        data.setYear(dataObject.getInt("y"));
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    try {
+                        List<Suggestion.Data.Video> videos = new ArrayList<>();
+                        for (Object v: dataObject.getJSONArray("v")){
+                            try {
+                                JSONObject videoObject = (JSONObject) v;
+                                Suggestion.Data.Video video = new Suggestion.Data.Video();
+
+                                try {
+                                    video.setId(videoObject.getString("id"));
+                                }catch (Exception e){
+                                    e.printStackTrace();
+                                }
+                                try {
+                                    video.setTitle(videoObject.getString("l"));
+                                }catch (Exception e){
+                                    e.printStackTrace();
+                                }
+                                try {
+                                    video.setRuntime(videoObject.getString("s"));
+                                }catch (Exception e){
+                                    e.printStackTrace();
+                                }
+                                try {
+                                    video.setPreview(videoObject.getJSONObject("i").getString("imageUrl"));
+                                }catch (Exception e){
+                                    e.printStackTrace();
+                                }
+
+                                videos.add(video);
+
+                            }catch (Exception e){
+                                e.printStackTrace();
+                            }
+                        }
+                        data.setVideos(videos);
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    dataList.add(data);
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+            suggestion.setData(dataList);
+        }catch (IOException e){
+            return new ApiResponse<>(null,e.getMessage(),false);
+        }
+
+        return new ApiResponse<>(suggestion,null,true);
+    }
 
     @GetMapping("/titles")
     @ApiOperation("Search Titles (Movies, Tv Shows, ...)")
@@ -253,18 +356,6 @@ public class ImdbSearchController {
             }
 
             return new ApiResponse<>(movieSearches, null, true);
-        } catch (IOException e) {
-            return new ApiResponse<>(null, e.getMessage(), false);
-        }
-    }
-
-    @GetMapping("/birthday")
-    ApiResponse<List<NameSearch>> searchNamesByBirthday(@RequestParam(value = "monthday") String date, @RequestParam(value = "start", defaultValue = "1") String start) {
-        List<NameSearch> nameSearches = new ArrayList<>();
-        try {
-            Document doc = Jsoup.connect(String.format(AppConstants.IMDB_SEARCH_NAME + "?birth_monthday=%s&start=%s", date, start)).get();
-
-            return getNameListResponse(nameSearches, doc);
         } catch (IOException e) {
             return new ApiResponse<>(null, e.getMessage(), false);
         }
