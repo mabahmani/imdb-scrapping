@@ -1,6 +1,7 @@
 package ir.mab.imdbscrapping.controller;
 
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import ir.mab.imdbscrapping.model.*;
 import ir.mab.imdbscrapping.util.AppConstants;
 import org.jsoup.Jsoup;
@@ -54,7 +55,7 @@ public class ImdbTitleController {
 
     @GetMapping("/{titleId}")
     @ApiOperation("Details of a Title (Movies, Tv Shows, ...)")
-    ApiResponse<MovieDetails> fetchMovieDetails(@PathVariable("titleId") String titleId) {
+    ApiResponse<MovieDetails> fetchMovieDetails(@ApiParam("Ex. tt0111161") @PathVariable("titleId") String titleId) {
         MovieDetails movieDetails = new MovieDetails();
         try {
             Document doc = Jsoup.connect(String.format(AppConstants.IMDB_TITLE + "%s", titleId)).get();
@@ -77,7 +78,7 @@ public class ImdbTitleController {
 
     @GetMapping("/{titleId}/fullcredits")
     @ApiOperation("Full Credits of a Title (Movies, Tv Shows, ...)")
-    ApiResponse<FullCredits> fetchMovieFullCredits(@PathVariable("titleId") String titleId){
+    ApiResponse<FullCredits> fetchMovieFullCredits(@ApiParam("Ex. tt0111161") @PathVariable("titleId") String titleId){
         try {
             Document doc = Jsoup.connect(String.format(AppConstants.IMDB_TITLE + "%s/fullcredits", titleId)).get();
             FullCredits fullCredits = new FullCredits();
@@ -184,7 +185,7 @@ public class ImdbTitleController {
 
     @GetMapping("/{titleId}/technical")
     @ApiOperation("Technical Specs of a Title (Movies, Tv Shows, ...)")
-    ApiResponse<TechnicalSpecifications> fetchMovieTechnicalSpecs(@PathVariable("titleId") String titleId){
+    ApiResponse<TechnicalSpecifications> fetchMovieTechnicalSpecs(@ApiParam("Ex. tt0111161") @PathVariable("titleId") String titleId){
         try {
             Document doc = Jsoup.connect(String.format(AppConstants.IMDB_TITLE + "%s/technical", titleId)).get();
             TechnicalSpecifications technicalSpecifications = new TechnicalSpecifications();
@@ -232,7 +233,7 @@ public class ImdbTitleController {
 
     @GetMapping("/{titleId}/faqs")
     @ApiOperation("Faqs of a Title (Movies, Tv Shows, ...)")
-    ApiResponse<Faqs> fetchMovieFaqs(@PathVariable("titleId") String titleId){
+    ApiResponse<Faqs> fetchMovieFaqs(@ApiParam("Ex. tt0111161") @PathVariable("titleId") String titleId){
         try {
             Document doc = Jsoup.connect(String.format(AppConstants.IMDB_TITLE + "%s/faq", titleId)).get();
             Faqs faqs = new Faqs();
@@ -302,7 +303,7 @@ public class ImdbTitleController {
 
     @GetMapping("/{titleId}/parentalguide")
     @ApiOperation("Parents Guide of a Title (Movies, Tv Shows, ...)")
-    ApiResponse<ParentsGuide> fetchMovieParentsGuide(@PathVariable("titleId") String titleId){
+    ApiResponse<ParentsGuide> fetchMovieParentsGuide(@ApiParam("Ex. tt0111161") @PathVariable("titleId") String titleId){
         try {
             Document doc = Jsoup.connect(String.format(AppConstants.IMDB_TITLE + "%s/parentalguide", titleId)).get();
             ParentsGuide parentsGuide = new ParentsGuide();
@@ -438,7 +439,7 @@ public class ImdbTitleController {
 
     @GetMapping("/{titleId}/awards")
     @ApiOperation("Awards of a Title (Movies, Tv Shows, ...)")
-    ApiResponse<MovieAwards> fetchMovieAwards(@PathVariable("titleId") String titleId){
+    ApiResponse<MovieAwards> fetchMovieAwards(@ApiParam("Ex. tt0111161") @PathVariable("titleId") String titleId){
         try {
             Document doc = Jsoup.connect(String.format(AppConstants.IMDB_TITLE + "%s/awards", titleId)).get();
             MovieAwards movieAwards = new MovieAwards();

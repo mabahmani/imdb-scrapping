@@ -1,6 +1,7 @@
 package ir.mab.imdbscrapping.controller;
 
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import ir.mab.imdbscrapping.model.ApiResponse;
 import ir.mab.imdbscrapping.model.News;
 import ir.mab.imdbscrapping.util.AppConstants;
@@ -21,7 +22,7 @@ public class ImdbNewsController {
 
     @GetMapping("/{newsId}")
     @ApiOperation("Details of a news")
-    ApiResponse<News> fetchNewsDetails(@PathVariable("newsId") String newsId) {
+    ApiResponse<News> fetchNewsDetails(@ApiParam("Ex. ni63456805") @PathVariable("newsId") String newsId) {
         News news = new News();
         try {
             Document doc = Jsoup.connect(String.format(AppConstants.IMDB_NEWS + "%s", newsId)).get();

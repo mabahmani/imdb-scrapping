@@ -1,6 +1,7 @@
 package ir.mab.imdbscrapping.controller;
 
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import ir.mab.imdbscrapping.model.ApiResponse;
 import ir.mab.imdbscrapping.model.Event;
 import ir.mab.imdbscrapping.model.EventSummary;
@@ -24,7 +25,11 @@ public class ImdbEventsController {
 
     @GetMapping("/{eventId}/{year}")
     @ApiOperation("Event's Winners And Details")
-    ApiResponse<Event> fetchEventWinnersAndDetails(@PathVariable("eventId") String eventId,@PathVariable("year") String year) {
+    ApiResponse<Event> fetchEventWinnersAndDetails(
+            @ApiParam("Ex. ev0000003")
+            @PathVariable("eventId") String eventId,
+            @ApiParam("Ex. 1996")
+            @PathVariable("year") String year) {
         Event event = new Event();
         try {
             Document doc = Jsoup.connect(String.format(AppConstants.IMDB_EVENT + "%s/%s", eventId, year)).get();

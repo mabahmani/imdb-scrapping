@@ -1,6 +1,7 @@
 package ir.mab.imdbscrapping.controller;
 
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import ir.mab.imdbscrapping.model.ApiResponse;
 import ir.mab.imdbscrapping.model.Video;
 import ir.mab.imdbscrapping.model.VideoGallery;
@@ -26,7 +27,7 @@ public class ImdbVideoController {
 
     @GetMapping("/{videoId}")
     @ApiOperation("Details of a Video (urls, runtime, ...)")
-    ApiResponse<Video> fetchVideo(@PathVariable("videoId") String videoId) {
+    ApiResponse<Video> fetchVideo(@ApiParam("Ex. vi2478686233") @PathVariable("videoId") String videoId) {
         Video video = new Video();
         try {
             Document doc = Jsoup.connect(String.format(AppConstants.IMDB_VIDEO + "%s", videoId)).get();
@@ -45,8 +46,11 @@ public class ImdbVideoController {
     @GetMapping("/name/{nameId}/videogallery")
     @ApiOperation("Videos of a Name (Celebrities, Actors/Actress, Directors, ...)")
     ApiResponse<VideoGallery> fetchVideosOfName(
+            @ApiParam("Ex. nm0000190")
             @PathVariable("nameId") String nameId,
+            @ApiParam("Ex. date, duration, expiration")
             @RequestParam(value = "sort", required = false, defaultValue = "date") String sort,
+            @ApiParam("Ex. desc, asc")
             @RequestParam(value = "sortDir", required = false, defaultValue = "desc") String sortDir,
             @RequestParam(value = "page", required = false) Integer page
     ) {
@@ -108,8 +112,11 @@ public class ImdbVideoController {
     @GetMapping("/title/{titleID}/videogallery")
     @ApiOperation("Videos of a Title (Movies, Tv Shows, ...)")
     ApiResponse<VideoGallery> fetchVideosOfTitle(
+            @ApiParam("Ex. tt0111161")
             @PathVariable("titleID") String titleID,
+            @ApiParam("Ex. date, duration, expiration")
             @RequestParam(value = "sort", required = false, defaultValue = "date") String sort,
+            @ApiParam("Ex. desc, asc")
             @RequestParam(value = "sortDir", required = false, defaultValue = "desc") String sortDir,
             @RequestParam(value = "page", required = false) Integer page
     ) {

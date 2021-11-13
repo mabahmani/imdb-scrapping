@@ -1,6 +1,7 @@
 package ir.mab.imdbscrapping.controller;
 
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import ir.mab.imdbscrapping.model.ApiResponse;
 import ir.mab.imdbscrapping.model.ImageGallery;
 import ir.mab.imdbscrapping.model.ImageList;
@@ -30,7 +31,9 @@ public class ImdbImageController {
 
     @GetMapping("/list/{listId}")
     @ApiOperation("All images of a list")
-    ApiResponse<ImageList> fetchImagesOfList(@PathVariable("listId") String listId) {
+    ApiResponse<ImageList> fetchImagesOfList(
+            @ApiParam("Ex. ls505300263")
+            @PathVariable("listId") String listId) {
         ImageList imageGallery = new ImageList();
         try {
             Document doc = Jsoup.connect(String.format(AppConstants.IMDB_LIST + "%s", listId)).get();
@@ -61,7 +64,10 @@ public class ImdbImageController {
 
     @GetMapping("/names/{nameId}")
     @ApiOperation("All images of a name (celebrities, directors, ...)")
-    ApiResponse<ImageList> fetchListImagesOfName(@PathVariable("nameId") String nameId, @RequestParam(value = "page", required = false) Integer page) {
+    ApiResponse<ImageList> fetchListImagesOfName(
+            @ApiParam("Ex. nm0000190")
+            @PathVariable("nameId") String nameId,
+            @RequestParam(value = "page", required = false) Integer page) {
         ImageList imageGallery = new ImageList();
         try {
             Document doc;
@@ -82,7 +88,10 @@ public class ImdbImageController {
 
     @GetMapping("/titles/{titleId}")
     @ApiOperation("All images of a titles (Movies, Tv Shows, ...)")
-    ApiResponse<ImageList> fetchListImagesOfTitle(@PathVariable("titleId") String titleId, @RequestParam(value = "page", required = false) Integer page) {
+    ApiResponse<ImageList> fetchListImagesOfTitle(
+            @ApiParam("Ex. tt1160419")
+            @PathVariable("titleId") String titleId,
+            @RequestParam(value = "page", required = false) Integer page) {
         ImageList imageGallery = new ImageList();
         try {
             Document doc;
@@ -104,11 +113,17 @@ public class ImdbImageController {
     @GetMapping("/list/{listId}/slider")
     @ApiOperation("Images of a list as slider with details")
     ApiResponse<ImageGallery> fetchImagesOfListAsSliderWithDetails(
+            @ApiParam("Ex. ls505300263")
             @PathVariable("listId") String listId,
+            @ApiParam("Ex. rm4288413441")
             @RequestParam(value = "imageId", required = false) String imageId,
+            @ApiParam("images before this cursor id")
             @RequestParam(value = "before", required = false) String beforeId,
+            @ApiParam("images after this cursor id")
             @RequestParam(value = "after", required = false) String afterId,
+            @ApiParam("number of last images")
             @RequestParam(value = "last", required = false, defaultValue = "6") Integer last,
+            @ApiParam("number of first images")
             @RequestParam(value = "first", required = false, defaultValue = "6") Integer first) {
 
         ImageGallery imageGallery = new ImageGallery();
@@ -208,11 +223,17 @@ public class ImdbImageController {
     @GetMapping("/names/{nameId}/slider")
     @ApiOperation("Images of a name as slider with details")
     ApiResponse<ImageGallery> fetchImagesOfNameAsSliderWithDetails(
+            @ApiParam("Ex. nm0000190")
             @PathVariable("nameId") String nameId,
+            @ApiParam("Ex. rm1484838913")
             @RequestParam(value = "imageId", required = false) String imageId,
+            @ApiParam("images before this cursor id")
             @RequestParam(value = "before", required = false) String beforeId,
+            @ApiParam("images after this cursor id")
             @RequestParam(value = "after", required = false) String afterId,
+            @ApiParam("number of last images")
             @RequestParam(value = "last", required = false, defaultValue = "6") Integer last,
+            @ApiParam("number of first images")
             @RequestParam(value = "first", required = false, defaultValue = "6") Integer first) {
 
         ImageGallery imageGallery = new ImageGallery();
