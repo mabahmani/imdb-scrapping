@@ -1,6 +1,7 @@
 package ir.mab.imdbscrapping.controller;
 
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import ir.mab.imdbscrapping.model.ApiResponse;
 import ir.mab.imdbscrapping.model.MovieSearch;
 import ir.mab.imdbscrapping.model.NameSearch;
@@ -165,10 +166,76 @@ public class ImdbSearchController {
 
     @GetMapping("/names")
     @ApiOperation("Search Names (Celebrities, Directors, Casts, ...)")
-    ApiResponse<List<NameSearch>> searchNames(@RequestParam(value = "gender", defaultValue = "male,female") String gender, @RequestParam(value = "start", defaultValue = "1") String start) {
+    ApiResponse<List<NameSearch>> searchNames(
+            @ApiParam("Ex. Tom Hardy")
+            @RequestParam(value = "name", required = false) String name,
+            @ApiParam("Names that birth date are between two dates \n Format: YYYY-MM-DD, YYYY-MM, or YYYY\n Ex. 1999-01-01,2000-12-31")
+            @RequestParam(value = "birthDate", required = false) String birthDate,
+            @ApiParam("Names that birth date are in this month/day\n Format: Format: MM-DD\n Ex. 10-02")
+            @RequestParam(value = "birthMonthDay", required = false) String birthMonthDay,
+            @ApiParam("Name Groups\n oscar_best_actress_nominees,\n oscar_best_actor_nominees,\n oscar_best_actress_winners,\n oscar_best_actor_winners,\n oscar_best_supporting_actress_nominees,\n oscar_best_supporting_actor_nominees,\n oscar_best_supporting_actress_winners,\n oscar_best_supporting_actor_winners,\n oscar_best_director_nominees,\n best_director_winner,\n oscar_winner,\n oscar_nominee")
+            @RequestParam(value = "groups", required = false) String groups,
+            @ApiParam("Star Sign\n aquarius, pisces, aries, taurus, gemini, cancer, leo, virgo, libra, scorpio, sagittarius, capricorn")
+            @RequestParam(value = "starSign", required = false) String starSign,
+            @ApiParam("Ex. Canada")
+            @RequestParam(value = "birthPlace", required = false) String birthPlace,
+            @ApiParam("Names that death date are between two dates \n Format: YYYY-MM-DD, YYYY-MM, or YYYY\n Ex. 1999-01-01,2000-12-31")
+            @RequestParam(value = "deathDate", required = false) String deathDate,
+            @ApiParam("Ex. Canada")
+            @RequestParam(value = "deathPlace", required = false) String deathPlace,
+            @ApiParam("Ex. male,female")
+            @RequestParam(value = "gender", defaultValue = "male,female") String gender,
+            @ApiParam("Filmography \n Ex. tt0111161")
+            @RequestParam(value = "roles", required = false) String roles,
+            @ApiParam("Search for words that might appear in the Mini-Biography.")
+            @RequestParam(value = "bio", required = false) String bio,
+            @ApiParam("Ex. starmeter,asc\n starmeter,desc\n alpha,asc\n alpha,desc\n birth_date,asc\n birth_date,desc\n death_date,asc\n death_date,desc")
+            @RequestParam(value = "sort", required = false) String sort,
+            @RequestParam(value = "start", defaultValue = "1") String start) {
         List<NameSearch> nameSearches = new ArrayList<>();
         try {
-            Document doc = Jsoup.connect(String.format(AppConstants.IMDB_SEARCH_NAME + "?gender=%s&start=%s", gender, start)).get();
+            StringBuilder reqUrl = new StringBuilder(AppConstants.IMDB_SEARCH_NAME + "?");
+
+            reqUrl.append(String.format("gender=%s",gender));
+
+            if (name != null && !name.isEmpty()){
+                reqUrl.append(String.format("&name=%s",name));
+            }
+            if (birthDate != null && !birthDate.isEmpty()){
+                reqUrl.append(String.format("&birth_date=%s",birthDate));
+            }
+            if (birthMonthDay != null && !birthMonthDay.isEmpty()){
+                reqUrl.append(String.format("&birth_monthday=%s",birthDate));
+            }
+            if (groups != null && !groups.isEmpty()){
+                reqUrl.append(String.format("&groups=%s",groups));
+            }
+            if (starSign != null && !starSign.isEmpty()){
+                reqUrl.append(String.format("&star_sign=%s",starSign));
+            }
+            if (birthPlace != null && !birthPlace.isEmpty()){
+                reqUrl.append(String.format("&birth_place=%s",birthPlace));
+            }
+            if (deathDate != null && !deathDate.isEmpty()){
+                reqUrl.append(String.format("&death_date=%s",deathDate));
+            }
+            if (deathPlace != null && !deathPlace.isEmpty()){
+                reqUrl.append(String.format("&death_place=%s",deathPlace));
+            }
+            if (roles != null && !roles.isEmpty()){
+                reqUrl.append(String.format("&roles=%s",roles));
+            }
+            if (bio != null && !bio.isEmpty()){
+                reqUrl.append(String.format("&bio=%s",bio));
+            }
+            if (sort != null && !sort.isEmpty()){
+                reqUrl.append(String.format("&sort=%s",sort));
+            }
+            if (start != null && !start.isEmpty()){
+                reqUrl.append(String.format("&start=%s",start));
+            }
+
+            Document doc = Jsoup.connect(reqUrl.toString()).get();
 
             return getNameListResponse(nameSearches, doc);
         } catch (IOException e) {
