@@ -1,5 +1,6 @@
 package ir.mab.imdbscrapping.controller;
 
+import io.swagger.annotations.ApiOperation;
 import ir.mab.imdbscrapping.model.ApiResponse;
 import ir.mab.imdbscrapping.util.AppConstants;
 import org.jsoup.Jsoup;
@@ -18,6 +19,7 @@ import java.util.List;
 public class ImdbKeywordController {
 
     @GetMapping("/")
+    @ApiOperation("Complete List Of Keywords")
     ApiResponse<List<String>> fetchListOfKeywords(){
         try {
             Document doc = Jsoup.connect(AppConstants.IMDB_KEYWORD).get();

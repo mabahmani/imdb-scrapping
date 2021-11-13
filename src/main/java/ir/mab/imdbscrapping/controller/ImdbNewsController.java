@@ -1,5 +1,6 @@
 package ir.mab.imdbscrapping.controller;
 
+import io.swagger.annotations.ApiOperation;
 import ir.mab.imdbscrapping.model.ApiResponse;
 import ir.mab.imdbscrapping.model.News;
 import ir.mab.imdbscrapping.util.AppConstants;
@@ -19,6 +20,7 @@ import static ir.mab.imdbscrapping.util.Utils.generateImage;
 public class ImdbNewsController {
 
     @GetMapping("/{newsId}")
+    @ApiOperation("Details of a news")
     ApiResponse<News> fetchNewsDetails(@PathVariable("newsId") String newsId) {
         News news = new News();
         try {

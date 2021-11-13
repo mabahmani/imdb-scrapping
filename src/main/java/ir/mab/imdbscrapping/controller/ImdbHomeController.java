@@ -1,5 +1,6 @@
 package ir.mab.imdbscrapping.controller;
 
+import io.swagger.annotations.ApiOperation;
 import ir.mab.imdbscrapping.model.ApiResponse;
 import ir.mab.imdbscrapping.model.Home;
 import ir.mab.imdbscrapping.model.HomeGraphQl;
@@ -29,6 +30,7 @@ import java.util.List;
 public class ImdbHomeController {
 
     @GetMapping("/")
+    @ApiOperation("Imdb Home Page")
     ApiResponse<Home> fetchIMDbHomePage() {
         Home home = new Home();
         try {
@@ -54,6 +56,7 @@ public class ImdbHomeController {
     }
 
     @GetMapping("/extra")
+    @ApiOperation("Imdb Home Page Extra Data")
     ApiResponse<HomeGraphQl> fetchIMDbHomePageExtra() {
         HomeGraphQl home = new HomeGraphQl();
 

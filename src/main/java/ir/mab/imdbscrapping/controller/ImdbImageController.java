@@ -1,5 +1,6 @@
 package ir.mab.imdbscrapping.controller;
 
+import io.swagger.annotations.ApiOperation;
 import ir.mab.imdbscrapping.model.ApiResponse;
 import ir.mab.imdbscrapping.model.ImageGallery;
 import ir.mab.imdbscrapping.model.ImageList;
@@ -28,6 +29,7 @@ import static ir.mab.imdbscrapping.util.Utils.generateImage;
 public class ImdbImageController {
 
     @GetMapping("/list/{listId}")
+    @ApiOperation("All images of a list")
     ApiResponse<ImageList> fetchImagesOfList(@PathVariable("listId") String listId) {
         ImageList imageGallery = new ImageList();
         try {
@@ -58,6 +60,7 @@ public class ImdbImageController {
     }
 
     @GetMapping("/names/{nameId}")
+    @ApiOperation("All images of a name (celebrities, directors, ...)")
     ApiResponse<ImageList> fetchListImagesOfName(@PathVariable("nameId") String nameId, @RequestParam(value = "page", required = false) Integer page) {
         ImageList imageGallery = new ImageList();
         try {
@@ -78,6 +81,7 @@ public class ImdbImageController {
     }
 
     @GetMapping("/titles/{titleId}")
+    @ApiOperation("All images of a titles (Movies, Tv Shows, ...)")
     ApiResponse<ImageList> fetchListImagesOfTitle(@PathVariable("titleId") String titleId, @RequestParam(value = "page", required = false) Integer page) {
         ImageList imageGallery = new ImageList();
         try {
@@ -98,6 +102,7 @@ public class ImdbImageController {
     }
 
     @GetMapping("/list/{listId}/slider")
+    @ApiOperation("Images of a list as slider with details")
     ApiResponse<ImageGallery> fetchImagesOfListAsSliderWithDetails(
             @PathVariable("listId") String listId,
             @RequestParam(value = "imageId", required = false) String imageId,
@@ -201,6 +206,7 @@ public class ImdbImageController {
     }
 
     @GetMapping("/names/{nameId}/slider")
+    @ApiOperation("Images of a name as slider with details")
     ApiResponse<ImageGallery> fetchImagesOfNameAsSliderWithDetails(
             @PathVariable("nameId") String nameId,
             @RequestParam(value = "imageId", required = false) String imageId,

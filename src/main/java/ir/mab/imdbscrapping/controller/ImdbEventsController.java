@@ -1,5 +1,6 @@
 package ir.mab.imdbscrapping.controller;
 
+import io.swagger.annotations.ApiOperation;
 import ir.mab.imdbscrapping.model.ApiResponse;
 import ir.mab.imdbscrapping.model.Event;
 import ir.mab.imdbscrapping.model.EventSummary;
@@ -22,6 +23,7 @@ import java.util.List;
 public class ImdbEventsController {
 
     @GetMapping("/{eventId}/{year}")
+    @ApiOperation("Event's Winners And Details")
     ApiResponse<Event> fetchEventWinnersAndDetails(@PathVariable("eventId") String eventId,@PathVariable("year") String year) {
         Event event = new Event();
         try {
@@ -175,6 +177,7 @@ public class ImdbEventsController {
     }
 
     @GetMapping("/")
+    @ApiOperation("Complete List Of Awards And Events")
     ApiResponse<List<EventSummary>> fetchACompleteListOfAwardsAndEvents() {
         List<EventSummary> events = new ArrayList<>();
 

@@ -1,5 +1,6 @@
 package ir.mab.imdbscrapping.controller;
 
+import io.swagger.annotations.ApiOperation;
 import ir.mab.imdbscrapping.model.ApiResponse;
 import ir.mab.imdbscrapping.model.NameAward;
 import ir.mab.imdbscrapping.model.NameBio;
@@ -26,6 +27,7 @@ import static ir.mab.imdbscrapping.util.Utils.*;
 public class ImdbNameController {
 
     @GetMapping("/{nameId}")
+    @ApiOperation("Details of a name (celebrities, directors, ...)")
     ApiResponse<NameDetails> fetchDetailsOfName(@PathVariable("nameId") String nameId) {
         NameDetails nameDetails = new NameDetails();
         try {
@@ -287,6 +289,7 @@ public class ImdbNameController {
     }
 
     @GetMapping("/{nameId}/bio")
+    @ApiOperation("Biography of a name (celebrities, directors, ...)")
     ApiResponse<NameBio> fetchBioOfName(@PathVariable("nameId") String nameId) {
         NameBio nameBio = new NameBio();
         try {
@@ -399,6 +402,7 @@ public class ImdbNameController {
     }
 
     @GetMapping("/{nameId}/awards")
+    @ApiOperation("Awards of a name (celebrities, directors, ...)")
     ApiResponse<NameAward> fetchAwardsOfName(@PathVariable("nameId") String nameId) {
         NameAward nameAward = new NameAward();
         try {

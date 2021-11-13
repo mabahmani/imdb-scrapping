@@ -1,5 +1,6 @@
 package ir.mab.imdbscrapping.controller;
 
+import io.swagger.annotations.ApiOperation;
 import ir.mab.imdbscrapping.model.ApiResponse;
 import ir.mab.imdbscrapping.model.Video;
 import ir.mab.imdbscrapping.model.VideoGallery;
@@ -24,6 +25,7 @@ import static ir.mab.imdbscrapping.util.Utils.generateImage;
 public class ImdbVideoController {
 
     @GetMapping("/{videoId}")
+    @ApiOperation("Details of a Video (urls, runtime, ...)")
     ApiResponse<Video> fetchVideo(@PathVariable("videoId") String videoId) {
         Video video = new Video();
         try {
@@ -41,6 +43,7 @@ public class ImdbVideoController {
     }
 
     @GetMapping("/name/{nameId}/videogallery")
+    @ApiOperation("Videos of a Name (Celebrities, Actors/Actress, Directors, ...)")
     ApiResponse<VideoGallery> fetchVideosOfName(
             @PathVariable("nameId") String nameId,
             @RequestParam(value = "sort", required = false, defaultValue = "date") String sort,
@@ -103,6 +106,7 @@ public class ImdbVideoController {
     }
 
     @GetMapping("/title/{titleID}/videogallery")
+    @ApiOperation("Videos of a Title (Movies, Tv Shows, ...)")
     ApiResponse<VideoGallery> fetchVideosOfTitle(
             @PathVariable("titleID") String titleID,
             @RequestParam(value = "sort", required = false, defaultValue = "date") String sort,

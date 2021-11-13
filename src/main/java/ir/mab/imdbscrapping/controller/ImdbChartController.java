@@ -1,5 +1,6 @@
 package ir.mab.imdbscrapping.controller;
 
+import io.swagger.annotations.ApiOperation;
 import ir.mab.imdbscrapping.model.ApiResponse;
 import ir.mab.imdbscrapping.model.BoxOffice;
 import ir.mab.imdbscrapping.model.MovieSummary;
@@ -24,6 +25,7 @@ import static ir.mab.imdbscrapping.util.Utils.generateImage;
 public class ImdbChartController {
 
     @GetMapping("/top250")
+    @ApiOperation("The Top Rated 250 movies as determined by imdb user votes")
     ApiResponse<List<MovieSummary>> fetchTheTopRated250Movies() {
         List<MovieSummary> movies = new ArrayList<>();
         try {
@@ -35,6 +37,7 @@ public class ImdbChartController {
     }
 
     @GetMapping("/popular")
+    @ApiOperation("IMDb's most popular movies")
     ApiResponse<List<MovieSummary>> fetchIMDbMostPopularMovies() {
         List<MovieSummary> movies = new ArrayList<>();
         try {
@@ -46,6 +49,7 @@ public class ImdbChartController {
     }
 
     @GetMapping("/tv/popular")
+    @ApiOperation("IMDb's most popular TV shows")
     ApiResponse<List<MovieSummary>> fetchIMDbMostPopularTvShows() {
         List<MovieSummary> movies = new ArrayList<>();
         try {
@@ -57,6 +61,7 @@ public class ImdbChartController {
     }
 
     @GetMapping("/bottom100")
+    @ApiOperation("The 100 lowest rated movies according to imdb users")
     ApiResponse<List<MovieSummary>> fetchThe100LowestRatedMovies() {
         List<MovieSummary> movies = new ArrayList<>();
         try {
@@ -68,6 +73,7 @@ public class ImdbChartController {
     }
 
     @GetMapping("/tv/top250")
+    @ApiOperation("The Top Rated 250 TV shows as determined by imdb user votes")
     ApiResponse<List<MovieSummary>> fetchTheTopRated250TVShows() {
         List<MovieSummary> movies = new ArrayList<>();
 
@@ -80,6 +86,7 @@ public class ImdbChartController {
     }
 
     @GetMapping("/boxoffice")
+    @ApiOperation("Weekly winners at the box office")
     ApiResponse<BoxOffice> fetchWeeklyWinnersAtTheBoxOffice() {
 
         try {

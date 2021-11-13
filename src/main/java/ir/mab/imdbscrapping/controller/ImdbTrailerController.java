@@ -1,5 +1,6 @@
 package ir.mab.imdbscrapping.controller;
 
+import io.swagger.annotations.ApiOperation;
 import ir.mab.imdbscrapping.model.ApiResponse;
 import ir.mab.imdbscrapping.model.Trailer;
 import ir.mab.imdbscrapping.util.AppConstants;
@@ -25,6 +26,7 @@ import java.util.List;
 public class ImdbTrailerController {
 
     @GetMapping("/trending")
+    @ApiOperation("List of Trending Trailers")
     ApiResponse<List<Trailer>> fetchTrendingTrailers() {
         List<Trailer> trailers;
 
@@ -53,6 +55,7 @@ public class ImdbTrailerController {
     }
 
     @GetMapping("/anticipated")
+    @ApiOperation("List of Most Anticipated Trailers")
     ApiResponse<List<Trailer>> fetchMostAnticipatedTrailers() {
         List<Trailer> trailers;
 
@@ -91,6 +94,7 @@ public class ImdbTrailerController {
     }
 
     @GetMapping("/popular")
+    @ApiOperation("List of Most Popular Trailers")
     ApiResponse<List<Trailer>> fetchMostPopularTrailers() {
         List<Trailer> trailers;
 
@@ -127,6 +131,7 @@ public class ImdbTrailerController {
     }
 
     @GetMapping("/recent")
+    @ApiOperation("List of Most Recent Trailers")
     ApiResponse<List<Trailer>> fetchMostRecentTrailers() {
         List<Trailer> trailers;
 

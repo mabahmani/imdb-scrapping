@@ -1,5 +1,6 @@
 package ir.mab.imdbscrapping.controller;
 
+import io.swagger.annotations.ApiOperation;
 import ir.mab.imdbscrapping.model.ApiResponse;
 import ir.mab.imdbscrapping.model.MovieSearch;
 import ir.mab.imdbscrapping.model.NameSearch;
@@ -25,6 +26,7 @@ import static ir.mab.imdbscrapping.util.Utils.*;
 public class ImdbSearchController {
 
     @GetMapping("/titles")
+    @ApiOperation("Search Titles (Movies, Tv Shows, ...)")
     ApiResponse<List<MovieSearch>> searchMoviesByGenresAndKeywords(@RequestParam(value = "genre", required = false) String genre, @RequestParam(value = "keyword", required = false) String keyword, @RequestParam(value = "start", defaultValue = "1") String start) {
         List<MovieSearch> movieSearches = new ArrayList<>();
         try {
@@ -162,6 +164,7 @@ public class ImdbSearchController {
     }
 
     @GetMapping("/names")
+    @ApiOperation("Search Names (Celebrities, Directors, Casts, ...)")
     ApiResponse<List<NameSearch>> searchNames(@RequestParam(value = "gender", defaultValue = "male,female") String gender, @RequestParam(value = "start", defaultValue = "1") String start) {
         List<NameSearch> nameSearches = new ArrayList<>();
         try {

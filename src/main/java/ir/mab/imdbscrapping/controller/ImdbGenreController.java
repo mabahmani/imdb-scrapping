@@ -1,5 +1,6 @@
 package ir.mab.imdbscrapping.controller;
 
+import io.swagger.annotations.ApiOperation;
 import ir.mab.imdbscrapping.model.ApiResponse;
 import ir.mab.imdbscrapping.model.Genre;
 import ir.mab.imdbscrapping.util.AppConstants;
@@ -20,6 +21,7 @@ import java.util.Objects;
 public class ImdbGenreController {
 
     @GetMapping("/")
+    @ApiOperation("List of Popular Genres")
     ApiResponse<List<Genre>> fetchPopularGenres(){
         try {
             Document doc = Jsoup.connect(AppConstants.IMDB_GENRE).get();
