@@ -134,14 +134,14 @@ public class ImdbSearchController {
     ApiResponse<List<MovieSearch>> searchTitles(
             @ApiParam("Ex.The Godfather")
             @RequestParam(value = "title", required = false) String title,
-            @ApiParam("Ex.feature,\ntv_movie,\ntv_series,\ntv_episode,\ntv_special,\ntv_miniseries,\ndocumentary,\nvideo_game,\nshort,\nvideo,\ntv_short,\npodcast_series,\npodcast_episode")
+            @ApiParam("Ex. \nfeature,\ntv_movie,\ntv_series,\ntv_episode,\ntv_special,\ntv_miniseries,\ndocumentary,\nvideo_game,\nshort,\nvideo,\ntv_short,\npodcast_series,\npodcast_episode")
             @RequestParam(value = "titleType", required = false) String titleType,
             @ApiParam("Search Titles that release date are between two dates \n Format: YYYY-MM-DD, YYYY-MM, or YYYY \n Ex. 1999-01-01,2000-12-31")
             @RequestParam(value = "releaseDate", required = false) String releaseDate,
             @ApiParam("Search Titles that user rating are between two rates \n Format: 1.0,10 \n Ex. 5.6,7.8")
             @RequestParam(value = "userRating", required = false) String userRating,
             @ApiParam("Ex. Action,Drama, ...")
-            @RequestParam(value = "genre", required = false) String genre,
+            @RequestParam(value = "genres", required = false) String genres,
             @ApiParam("Title Groups \n top_100,\ntop_250,\ntop_1000,\nbottom_100,\nbottom_250,\nbottom_1000\noscar_winner,\nemmy_winner,\ngolden_globe_winner,\noscar_nominee,\nemmy_nominee,\ngolden_globe_nominee,\nbest_picture_winner,\nbest_director_winner,\noscar_best_picture_nominees,\noscar_best_director_nominees,\nnational_film_preservation_board_winner,\nrazzie_winner,\nrazzie_nominee")
             @RequestParam(value = "groups", required = false) String groups,
             @ApiParam("Companies \n Ex. fox, sony, dreamworks, mgm, paramount, universal, disney, warner, ...")
@@ -153,7 +153,7 @@ public class ImdbSearchController {
             @ApiParam("Countries \n Ex. af, in, ir, ...")
             @RequestParam(value = "countries", required = false) String countries,
             @ApiParam("Search for a notable object, concept, style or aspect. \n Ex. superhero, ...")
-            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "keywords", required = false) String keywords,
             @ApiParam("Ex. fr, fa, en, ...")
             @RequestParam(value = "languages", required = false) String languages,
             @ApiParam("Filming Locations \n Ex. canada, iran, ...")
@@ -170,18 +170,20 @@ public class ImdbSearchController {
         List<MovieSearch> movieSearches = new ArrayList<>();
         try {
 
+            StringBuilder reqUrl = new StringBuilder(AppConstants.IMDB_SEARCH_TITLE + "?");
+            reqUrl.append(String.format("start=%s", start));
             if (
                     title == null &&
                             titleType == null &&
                             releaseDate == null &&
                             userRating == null &&
-                            genre == null &&
+                            genres == null &&
                             groups == null &&
                             companies == null &&
                             certificates == null &&
                             colors == null &&
                             countries == null &&
-                            keyword == null &&
+                            keywords == null &&
                             languages == null &&
                             locations == null &&
                             plot == null &&
@@ -189,11 +191,8 @@ public class ImdbSearchController {
                             runtime == null
 
             ) {
-                return new ApiResponse<>(null, "at least one query needed!", false);
+                titleType = "feature,tv_series";
             }
-
-            StringBuilder reqUrl = new StringBuilder(AppConstants.IMDB_SEARCH_TITLE + "?");
-            reqUrl.append(String.format("start=%s", start));
 
             if (title != null && !title.isEmpty()) {
                 reqUrl.append(String.format("&title=%s", title));
@@ -207,8 +206,8 @@ public class ImdbSearchController {
             if (userRating != null && !userRating.isEmpty()) {
                 reqUrl.append(String.format("&user_rating=%s", userRating));
             }
-            if (genre != null && !genre.isEmpty()) {
-                reqUrl.append(String.format("&genre=%s", genre));
+            if (genres != null && !genres.isEmpty()) {
+                reqUrl.append(String.format("&genres=%s", genres));
             }
             if (groups != null && !groups.isEmpty()) {
                 reqUrl.append(String.format("&groups=%s", groups));
@@ -225,8 +224,8 @@ public class ImdbSearchController {
             if (countries != null && !countries.isEmpty()) {
                 reqUrl.append(String.format("&countries=%s", countries));
             }
-            if (keyword != null && !keyword.isEmpty()) {
-                reqUrl.append(String.format("&keyword=%s", keyword));
+            if (keywords != null && !keywords.isEmpty()) {
+                reqUrl.append(String.format("&keywords=%s", keywords));
             }
             if (languages != null && !languages.isEmpty()) {
                 reqUrl.append(String.format("&languages=%s", languages));
@@ -248,6 +247,7 @@ public class ImdbSearchController {
             }
 
 
+            System.out.println(reqUrl.toString());
             Document doc = Jsoup.connect(reqUrl.toString()).get();
 
 
@@ -368,7 +368,7 @@ public class ImdbSearchController {
             @RequestParam(value = "name", required = false) String name,
             @ApiParam("Search Names that birth date are between two dates \n Format: YYYY-MM-DD, YYYY-MM, or YYYY\n Ex. 1999-01-01,2000-12-31")
             @RequestParam(value = "birthDate", required = false) String birthDate,
-            @ApiParam("Search Names that birth date are in this month/day\n Format: Format: MM-DD\n Ex. 10-02")
+            @ApiParam("Search Names that birth date are in this month/day\n Format: MM-DD\n Ex. 10-02")
             @RequestParam(value = "birthMonthDay", required = false) String birthMonthDay,
             @ApiParam("Name Groups\n oscar_best_actress_nominees,\n oscar_best_actor_nominees,\n oscar_best_actress_winners,\n oscar_best_actor_winners,\n oscar_best_supporting_actress_nominees,\n oscar_best_supporting_actor_nominees,\n oscar_best_supporting_actress_winners,\n oscar_best_supporting_actor_winners,\n oscar_best_director_nominees,\n best_director_winner,\n oscar_winner,\n oscar_nominee")
             @RequestParam(value = "groups", required = false) String groups,
@@ -402,7 +402,7 @@ public class ImdbSearchController {
                 reqUrl.append(String.format("&birth_date=%s", birthDate));
             }
             if (birthMonthDay != null && !birthMonthDay.isEmpty()) {
-                reqUrl.append(String.format("&birth_monthday=%s", birthDate));
+                reqUrl.append(String.format("&birth_monthday=%s", birthMonthDay));
             }
             if (groups != null && !groups.isEmpty()) {
                 reqUrl.append(String.format("&groups=%s", groups));
