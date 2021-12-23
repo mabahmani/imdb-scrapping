@@ -909,6 +909,11 @@ public class ImdbTitleController {
             e.printStackTrace();
         }
         try {
+            overview.setTrailerVideoId(Objects.requireNonNull(extractVideoId(doc.getElementsByClass("hero-media__slate-overlay").get(0).attr("href"))));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
             List<MovieDetails.Genre> sGenres = new ArrayList<>();
             try {
                 Elements sGenreElements = doc.getElementsByAttributeValue("data-testid", "genres").get(0).getElementsByTag("a");

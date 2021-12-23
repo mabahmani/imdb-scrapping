@@ -95,7 +95,7 @@ public class MovieDetails {
         this.technicalSpecs = technicalSpecs;
     }
 
-    public static class Overview{
+    public static class Overview {
         String title;
         String releaseYear;
         String parentalGuidCertificate;
@@ -105,6 +105,7 @@ public class MovieDetails {
         String cover;
         String trailerPreview;
         String trailerDuration;
+        String trailerVideoId;
         List<Genre> genres;
         String plot;
         List<Person> directors;
@@ -183,6 +184,14 @@ public class MovieDetails {
             this.trailerDuration = trailerDuration;
         }
 
+        public String getTrailerVideoId() {
+            return trailerVideoId;
+        }
+
+        public void setTrailerVideoId(String trailerVideoId) {
+            this.trailerVideoId = trailerVideoId;
+        }
+
         public List<Genre> getGenres() {
             return genres;
         }
@@ -224,7 +233,7 @@ public class MovieDetails {
         }
     }
 
-    public static class Genre{
+    public static class Genre {
         String title;
         String link;
 
@@ -245,7 +254,7 @@ public class MovieDetails {
         }
     }
 
-    public static class Keyword{
+    public static class Keyword {
         String title;
         String link;
 
@@ -266,7 +275,7 @@ public class MovieDetails {
         }
     }
 
-    public static class Person{
+    public static class Person {
         String realName;
         String movieName;
         String image;
@@ -314,7 +323,7 @@ public class MovieDetails {
         }
     }
 
-    public static class Video{
+    public static class Video {
         String title;
         String duration;
         String preview;
@@ -383,7 +392,7 @@ public class MovieDetails {
         }
     }
 
-    public static class RelatedMovie{
+    public static class RelatedMovie {
         String title;
         String rate;
         String cover;
@@ -431,7 +440,7 @@ public class MovieDetails {
         }
     }
 
-    public static class Storyline{
+    public static class Storyline {
         String story;
         List<Keyword> keywords;
         String taglines;
@@ -509,7 +518,7 @@ public class MovieDetails {
         }
     }
 
-    public static class Review{
+    public static class Review {
         String title;
         String review;
         String date;
@@ -557,7 +566,7 @@ public class MovieDetails {
         }
     }
 
-    public static class Details{
+    public static class Details {
         List<LinkTitle> releaseDate;
         List<LinkTitle> countryOfOrigin;
         List<LinkTitle> officialSites;
@@ -614,7 +623,7 @@ public class MovieDetails {
         }
     }
 
-    public static class BoxOffice{
+    public static class BoxOffice {
         String budget;
         String grossUsAndCanada;
         String openingWeekendUsAndCanada;
@@ -653,7 +662,7 @@ public class MovieDetails {
         }
     }
 
-    public static class TechnicalSpecs{
+    public static class TechnicalSpecs {
         String title;
         String subtitle;
 
