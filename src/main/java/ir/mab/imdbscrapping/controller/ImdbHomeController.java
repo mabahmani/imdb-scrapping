@@ -11,6 +11,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.apache.juli.logging.Log;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
@@ -304,7 +305,8 @@ public class ImdbHomeController {
 
         try {
             JSONObject props = (JSONObject) response.get("props");
-            JSONObject urqlState = (JSONObject) props.get("urqlState");
+            JSONObject pageProps = (JSONObject) props.get("pageProps");
+            JSONObject urqlState = (JSONObject) pageProps.get("urqlState");
             JSONObject urqlStateNextKey = (JSONObject) urqlState.get(urqlState.keys().next());
             JSONObject urqlStateNextKeyData = (JSONObject) urqlStateNextKey.get("data");
             JSONObject boxOfficeWeekendChart = (JSONObject) urqlStateNextKeyData.get("boxOfficeWeekendChart");
@@ -386,7 +388,8 @@ public class ImdbHomeController {
 
         try {
             JSONObject props = (JSONObject) response.get("props");
-            JSONObject urqlState = (JSONObject) props.get("urqlState");
+            JSONObject pageProps = (JSONObject) props.get("pageProps");
+            JSONObject urqlState = (JSONObject) pageProps.get("urqlState");
             JSONObject urqlStateNextKey = (JSONObject) urqlState.get(urqlState.keys().next());
             JSONObject urqlStateNextKeyData = (JSONObject) urqlStateNextKey.get("data");
             JSONObject newsObject = (JSONObject) urqlStateNextKeyData.get("news");
@@ -601,7 +604,8 @@ public class ImdbHomeController {
 
     private JSONObject getTransformedPlacements(JSONObject response) {
         JSONObject props = (JSONObject) response.get("props");
-        JSONObject cmsContext = (JSONObject) props.get("cmsContext");
+        JSONObject pageProps = (JSONObject) props.get("pageProps");
+        JSONObject cmsContext = (JSONObject) pageProps.get("cmsContext");
         return (JSONObject) cmsContext.get("transformedPlacements");
     }
 
