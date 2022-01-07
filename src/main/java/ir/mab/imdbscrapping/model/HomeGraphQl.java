@@ -81,6 +81,33 @@ public class HomeGraphQl {
         String certificate;
         String titleId;
         String videoId;
+        String videoName;
+        String videoPreview;
+        Integer videoRuntime;
+
+        public String getVideoName() {
+            return videoName;
+        }
+
+        public void setVideoName(String videoName) {
+            this.videoName = videoName;
+        }
+
+        public String getVideoPreview() {
+            return videoPreview;
+        }
+
+        public void setVideoPreview(String videoPreview) {
+            this.videoPreview = videoPreview;
+        }
+
+        public Integer getVideoRuntime() {
+            return videoRuntime;
+        }
+
+        public void setVideoRuntime(Integer videoRuntime) {
+            this.videoRuntime = videoRuntime;
+        }
 
         public String getReleaseMonth() {
             return releaseMonth;

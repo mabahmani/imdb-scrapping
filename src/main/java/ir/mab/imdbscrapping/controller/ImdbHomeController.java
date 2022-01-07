@@ -236,6 +236,21 @@ public class ImdbHomeController {
                     e.printStackTrace();
                 }
                 try {
+                    movieCard.setVideoName(((JSONObject) node.get("latestTrailer")).getJSONObject("name").getString("value"));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                try {
+                    movieCard.setVideoRuntime(((JSONObject) node.get("latestTrailer")).getJSONObject("runtime").getInt("value"));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                try {
+                    movieCard.setVideoPreview(((JSONObject) node.get("latestTrailer")).getJSONObject("thumbnail").getString("url"));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                try {
                     if (!node.isNull("releaseDate")) {
                         movieCard.setReleaseDay(((JSONObject) node.get("releaseDate")).get("day").toString());
                         movieCard.setReleaseMonth(((JSONObject) node.get("releaseDate")).get("month").toString());
