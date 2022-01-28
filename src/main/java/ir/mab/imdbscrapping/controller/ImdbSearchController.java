@@ -300,7 +300,7 @@ public class ImdbSearchController {
                         e.printStackTrace();
                     }
                     try {
-                        movieSearch.setSummary(Objects.requireNonNull(element.getElementsByClass("ratings-bar").get(0).nextElementSibling()).text());
+                        movieSearch.setSummary(element.getElementsByClass("lister-item-content").get(0).getElementsByClass("text-muted").get(2).text());
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -310,7 +310,8 @@ public class ImdbSearchController {
                         e.printStackTrace();
                     }
                     try {
-                        Element castElement = element.getElementsByClass("sort-num_votes-visible").get(0).previousElementSibling();
+                        Element castElement = element.getElementsByClass("lister-item-content").get(0).getElementsByClass("text-muted").get(2).nextElementSibling();
+
                         Elements ghostElements = Objects.requireNonNull(castElement).getElementsByClass("ghost");
 
                         if (ghostElements.isEmpty()) {
