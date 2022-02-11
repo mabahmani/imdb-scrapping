@@ -212,8 +212,7 @@ public class ImdbNameController {
             }
             try {
                 List<NameDetails.PersonalDetail> personalDetails = new ArrayList<>();
-
-                for (Element element : doc.getElementsByClass("article").get(6).children()) {
+                for (Element element : doc.getElementsContainingOwnText("Personal Details").get(1).parent().children()) {
                     if (element.id().contains("details")) {
                         NameDetails.PersonalDetail personalDetail = new NameDetails.PersonalDetail();
                         try {
