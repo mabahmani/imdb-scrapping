@@ -292,7 +292,16 @@ public class ImdbImageController {
 
                         try {
                             JSONObject item = edge.getJSONObject("node");
+
                             setImageFields(image, item);
+
+                            try {
+                                JSONObject description = item.getJSONObject("caption");
+                                image.setDescriptionHtml(description.getString("plaidHtml"));
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -387,7 +396,16 @@ public class ImdbImageController {
 
                         try {
                             JSONObject item = edge.getJSONObject("node");
+
                             setImageFields(image, item);
+
+                            try {
+                                JSONObject description = item.getJSONObject("caption");
+                                image.setDescriptionHtml(description.getString("plaidHtml"));
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
