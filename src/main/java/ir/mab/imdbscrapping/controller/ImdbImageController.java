@@ -62,6 +62,47 @@ public class ImdbImageController {
         return new ApiResponse<>(imageGallery, null, true);
     }
 
+    @GetMapping("/gallery/{galleryId}")
+    @ApiOperation("All images of a gallery")
+    ApiResponse<ImageList> fetchImagesOfGallery(
+            @ApiParam("Ex. rg1858378496")
+            @PathVariable("galleryId") String galleryId,
+            @RequestParam(value = "page", required = false) Integer page
+    ) {
+        ImageList imageGallery = new ImageList();
+        try {
+            Document doc;
+
+            if (page != null) {
+                doc = Jsoup.connect(String.format(AppConstants.IMDB_GALLERY + "%s?page=%s", galleryId, page)).get();
+            } else {
+                doc = Jsoup.connect(String.format(AppConstants.IMDB_GALLERY + "%s", galleryId)).get();
+            }
+
+            try {
+                imageGallery.setTitle(doc.getElementsByClass("header list-name").text());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            try {
+                imageGallery.setSubtitle(doc.getElementsByClass("list-description").text());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            try {
+                imageGallery.setImages(extractImages(doc));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        } catch (IOException e) {
+            return new ApiResponse<>(null, e.getMessage(), false);
+        }
+
+        return new ApiResponse<>(imageGallery, null, true);
+    }
+
     @GetMapping("/names/{nameId}")
     @ApiOperation("All images of a name (celebrities, directors, ...)")
     ApiResponse<ImageList> fetchListImagesOfName(
@@ -243,7 +284,7 @@ public class ImdbImageController {
         try {
             JSONObject reqObject = new JSONObject();
             reqObject.put("query", "query NameImages($id: ID!, $before: ID, $after: ID, $jumpTo: ID, $first: Int, $last: Int, $lastYes: Boolean!, $firstYes: Boolean!) {\n  name(id: $id) {\n    nameText {\n      text\n      __typename\n    }\n    meta {\n      publicationStatus\n      __typename\n    }\n    images(first: $first, after: $after, jumpTo: $jumpTo) @include(if: $firstYes) {\n      total\n      ...MediaViewerMeta\n      __typename\n    }\n    wrapFront: images(last: $last, before: $before) @include(if: $lastYes) {\n      total\n      ...MediaViewerMeta\n      __typename\n    }\n    wrapBack: images(first: $first) @include(if: $firstYes) {\n      total\n      ...MediaViewerMeta\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment MediaViewerMeta on ImageConnection {\n  pageInfo {\n    endCursor\n    hasNextPage\n    hasPreviousPage\n    startCursor\n    __typename\n  }\n  edges {\n    position\n    cursor\n    node {\n      ...MediaViewerImageMeta\n      ...MediaSheetImageMeta\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment MediaViewerImageMeta on Image {\n  id\n  url\n  height\n  width\n  caption {\n    plainText\n    __typename\n  }\n}\n\nfragment MediaSheetImageMeta on Image {\n  copyright\n  createdBy\n  caption {\n    plaidHtml\n    __typename\n  }\n  titles {\n    id\n    titleText {\n      text\n      __typename\n    }\n    __typename\n  }\n  source {\n    attributionUrl\n    text\n    banner {\n      url\n      attributionUrl\n      __typename\n    }\n    __typename\n  }\n  names {\n    id\n    nameText {\n      text\n      __typename\n    }\n    __typename\n  }\n  countries {\n    text\n    __typename\n  }\n  languages {\n    text\n    __typename\n  }\n  correctionLink(relatedId: $id, contributionContext: {isInIframe: true, returnUrl: \"https://www.imdb.com/close_me\", business: \"consumer\"}) {\n    url\n    __typename\n  }\n  reportingLink(relatedId: $id, contributionContext: {isInIframe: true, returnUrl: \"https://www.imdb.com/close_me\", business: \"consumer\"}) {\n    url\n    __typename\n  }\n}\n");
-            reqObject.put("variables", initVariableObject(nameId,imageId,beforeId,afterId,first,last));
+            reqObject.put("variables", initVariableObject(nameId, imageId, beforeId, afterId, first, last));
             params = new StringEntity(reqObject.toString());
             httppost.addHeader("content-type", "application/json");
             httppost.setEntity(params);
@@ -346,8 +387,8 @@ public class ImdbImageController {
         StringEntity params;
         try {
             JSONObject reqObject = new JSONObject();
-            reqObject.put("query", "query TitleImages($id: ID!, $before: ID, $after: ID, $jumpTo: ID, $first: Int, $last: Int, $lastYes: Boolean!, $firstYes: Boolean!) {\n  title(id: $id) {\n    titleText {\n      text\n      __typename\n    }\n    meta {\n      publicationStatus\n      __typename\n    }\n    releaseYear {\n      year\n      __typename\n    }\n    images(first: $first, after: $after, jumpTo: $jumpTo) @include(if: $firstYes) {\n      total\n      ...MediaViewerMeta\n      __typename\n    }\n    wrapFront: images(last: $last, before: $before) @include(if: $lastYes) {\n      total\n      ...MediaViewerMeta\n      __typename\n    }\n    wrapBack: images(first: $first) @include(if: $firstYes) {\n      total\n      ...MediaViewerMeta\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment MediaViewerMeta on ImageConnection {\n  pageInfo {\n    endCursor\n    hasNextPage\n    hasPreviousPage\n    startCursor\n    __typename\n  }\n  edges {\n    position\n    cursor\n    node {\n      ...MediaViewerImageMeta\n      ...MediaSheetImageMeta\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment MediaViewerImageMeta on Image {\n  id\n  url\n  height\n  width\n  caption {\n    plainText\n    __typename\n  }\n}\n\nfragment MediaSheetImageMeta on Image {\n  copyright\n  createdBy\n  caption {\n    plaidHtml\n    __typename\n  }\n  titles {\n    id\n    titleText {\n      text\n      __typename\n    }\n    __typename\n  }\n  source {\n    attributionUrl\n    text\n    banner {\n      url\n      attributionUrl\n      __typename\n    }\n    __typename\n  }\n  names {\n    id\n    nameText {\n      text\n      __typename\n    }\n    __typename\n  }\n  countries {\n    text\n    __typename\n  }\n  languages {\n    text\n    __typename\n  }\n  correctionLink(relatedId: $id, contributionContext: {isInIframe: true, returnUrl: \"https://www.imdb.com/close_me\", business: \"consumer\"}) {\n    url\n    __typename\n  }\n  reportingLink(relatedId: $id, contributionContext: {isInIframe: true, returnUrl: \"https://www.imdb.com/close_me\", business: \"consumer\"}) {\n    url\n    __typename\n  }\n}\n" );
-            reqObject.put("variables", initVariableObject(titleId,imageId,beforeId,afterId,first,last));
+            reqObject.put("query", "query TitleImages($id: ID!, $before: ID, $after: ID, $jumpTo: ID, $first: Int, $last: Int, $lastYes: Boolean!, $firstYes: Boolean!) {\n  title(id: $id) {\n    titleText {\n      text\n      __typename\n    }\n    meta {\n      publicationStatus\n      __typename\n    }\n    releaseYear {\n      year\n      __typename\n    }\n    images(first: $first, after: $after, jumpTo: $jumpTo) @include(if: $firstYes) {\n      total\n      ...MediaViewerMeta\n      __typename\n    }\n    wrapFront: images(last: $last, before: $before) @include(if: $lastYes) {\n      total\n      ...MediaViewerMeta\n      __typename\n    }\n    wrapBack: images(first: $first) @include(if: $firstYes) {\n      total\n      ...MediaViewerMeta\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment MediaViewerMeta on ImageConnection {\n  pageInfo {\n    endCursor\n    hasNextPage\n    hasPreviousPage\n    startCursor\n    __typename\n  }\n  edges {\n    position\n    cursor\n    node {\n      ...MediaViewerImageMeta\n      ...MediaSheetImageMeta\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment MediaViewerImageMeta on Image {\n  id\n  url\n  height\n  width\n  caption {\n    plainText\n    __typename\n  }\n}\n\nfragment MediaSheetImageMeta on Image {\n  copyright\n  createdBy\n  caption {\n    plaidHtml\n    __typename\n  }\n  titles {\n    id\n    titleText {\n      text\n      __typename\n    }\n    __typename\n  }\n  source {\n    attributionUrl\n    text\n    banner {\n      url\n      attributionUrl\n      __typename\n    }\n    __typename\n  }\n  names {\n    id\n    nameText {\n      text\n      __typename\n    }\n    __typename\n  }\n  countries {\n    text\n    __typename\n  }\n  languages {\n    text\n    __typename\n  }\n  correctionLink(relatedId: $id, contributionContext: {isInIframe: true, returnUrl: \"https://www.imdb.com/close_me\", business: \"consumer\"}) {\n    url\n    __typename\n  }\n  reportingLink(relatedId: $id, contributionContext: {isInIframe: true, returnUrl: \"https://www.imdb.com/close_me\", business: \"consumer\"}) {\n    url\n    __typename\n  }\n}\n");
+            reqObject.put("variables", initVariableObject(titleId, imageId, beforeId, afterId, first, last));
             params = new StringEntity(reqObject.toString());
             httppost.addHeader("content-type", "application/json");
             httppost.setEntity(params);

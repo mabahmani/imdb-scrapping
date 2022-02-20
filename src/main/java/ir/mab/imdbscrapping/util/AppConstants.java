@@ -15,6 +15,7 @@ public class AppConstants {
     public static final String IMDB_EVENT           = IMDB_URL + "/event/";
     public static final String IMDB_GENRE           = IMDB_URL + "/feature/genre/";
     public static final String IMDB_LIST            = IMDB_URL + "/list/";
+    public static final String IMDB_GALLERY            = IMDB_URL + "/gallery/";
     public static final String IMDB_NAME            = IMDB_URL + "/name/";
     public static final String IMDB_TITLE           = IMDB_URL + "/title/";
     public static final String IMDB_KEYWORD         = IMDB_URL + "/search/keyword/";
