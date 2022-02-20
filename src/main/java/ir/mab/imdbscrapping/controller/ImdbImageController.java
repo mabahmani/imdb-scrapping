@@ -261,6 +261,123 @@ public class ImdbImageController {
         return new ApiResponse<>(imageGallery, null, true);
     }
 
+
+    @GetMapping("/gallery/{galleryId}/slider")
+    @ApiOperation("Images of a gallery as slider with details")
+    ApiResponse<ImageGallery> fetchImagesOfGalleryAsSliderWithDetails(
+            @ApiParam("Ex. rg1858378496")
+            @PathVariable("galleryId") String galleryId,
+            @ApiParam("Ex. rm4288413441")
+            @RequestParam(value = "imageId", required = false) String imageId,
+            @ApiParam("images before this cursor id")
+            @RequestParam(value = "before", required = false) String beforeId,
+            @ApiParam("images after this cursor id")
+            @RequestParam(value = "after", required = false) String afterId,
+            @ApiParam("number of last images")
+            @RequestParam(value = "last", required = false, defaultValue = "6") Integer last,
+            @ApiParam("number of first images")
+            @RequestParam(value = "first", required = false, defaultValue = "6") Integer first) {
+
+        ImageGallery imageGallery = new ImageGallery();
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+        HttpPost httppost = new HttpPost(AppConstants.IMDB_URL_GRAPH_QL);
+        StringEntity params;
+        try {
+            JSONObject reqObject = new JSONObject();
+            reqObject.put("query", "query GalleryImages($id: ID!, $before: ID, $after: ID, $jumpTo: ID, $first: Int, $last: Int, $lastYes: Boolean!, $firstYes: Boolean!) {\n  imageGallery(id: $id) {\n    galleryText\n    images(first: $first, after: $after, jumpTo: $jumpTo) @include(if: $firstYes) {\n      total\n      ...MediaViewerMeta\n      __typename\n    }\n    wrapFront: images(last: $last, before: $before) @include(if: $lastYes) {\n      total\n      ...MediaViewerMeta\n      __typename\n    }\n    wrapBack: images(first: $first) @include(if: $firstYes) {\n      total\n      ...MediaViewerMeta\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment MediaViewerMeta on ImageConnection {\n  pageInfo {\n    endCursor\n    hasNextPage\n    hasPreviousPage\n    startCursor\n    __typename\n  }\n  edges {\n    position\n    cursor\n    node {\n      ...MediaViewerImageMeta\n      ...MediaSheetImageMeta\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment MediaViewerImageMeta on Image {\n  id\n  url\n  height\n  width\n  caption {\n    plainText\n    __typename\n  }\n}\n\nfragment MediaSheetImageMeta on Image {\n  copyright\n  createdBy\n  caption {\n    plaidHtml\n    __typename\n  }\n  titles {\n    id\n    titleText {\n      text\n      __typename\n    }\n    __typename\n  }\n  source {\n    attributionUrl\n    text\n    banner {\n      url\n      attributionUrl\n      __typename\n    }\n    __typename\n  }\n  names {\n    id\n    nameText {\n      text\n      __typename\n    }\n    __typename\n  }\n  countries {\n    text\n    __typename\n  }\n  languages {\n    text\n    __typename\n  }\n  correctionLink(relatedId: $id, contributionContext: {isInIframe: true, returnUrl: \"https://www.imdb.com/close_me\", business: \"consumer\"}) {\n    url\n    __typename\n  }\n  reportingLink(relatedId: $id, contributionContext: {isInIframe: true, returnUrl: \"https://www.imdb.com/close_me\", business: \"consumer\"}) {\n    url\n    __typename\n  }\n}\n");
+            reqObject.put("variables", initVariableObject(galleryId, imageId, beforeId, afterId, first, last));
+            params = new StringEntity(reqObject.toString());
+            httppost.addHeader("content-type", "application/json");
+            httppost.setEntity(params);
+            HttpResponse response = httpClient.execute(httppost);
+            JSONObject responseJson = new JSONObject(EntityUtils.toString(response.getEntity(), "UTF-8"));
+            System.out.println("aminnasd " + responseJson);
+
+            try {
+                imageGallery.setTitle(responseJson.getJSONObject("data").getJSONObject("imageGallery").getString("galleryText"));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            try {
+                imageGallery.setEndCursor(responseJson.getJSONObject("data").getJSONObject("imageGallery").getJSONObject("images").getJSONObject("pageInfo").getString("endCursor"));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            try {
+                imageGallery.setStartCursor(responseJson.getJSONObject("data").getJSONObject("imageGallery").getJSONObject("images").getJSONObject("pageInfo").getString("startCursor"));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            try {
+                imageGallery.setHasNextPage(responseJson.getJSONObject("data").getJSONObject("imageGallery").getJSONObject("images").getJSONObject("pageInfo").getBoolean("hasNextPage"));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            try {
+                imageGallery.setHasPreviousPage(responseJson.getJSONObject("data").getJSONObject("imageGallery").getJSONObject("images").getJSONObject("pageInfo").getBoolean("hasPreviousPage"));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            try {
+                List<ImageGallery.Image> images = new ArrayList<>();
+
+                for (Object o : responseJson.getJSONObject("data").getJSONObject("imageGallery").getJSONObject("images").getJSONArray("edges")) {
+
+                    ImageGallery.Image image = new ImageGallery.Image();
+
+                    try {
+                        JSONObject edge = (JSONObject) o;
+                        try {
+                            image.setPosition(edge.getInt("position"));
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+                        try {
+                            JSONObject node = edge.getJSONObject("node");
+
+                            try {
+                                setImageFields(image, node);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+
+                            try {
+                                JSONObject description = node.getJSONObject("caption");
+                                image.setDescriptionHtml(description.getString("plaidHtml"));
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                            try {
+                                JSONObject description = node.getJSONObject("caption");
+                                image.setCaption(description.getString("plainText"));
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    images.add(image);
+                }
+
+                imageGallery.setImages(images);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        } catch (IOException e) {
+            return new ApiResponse<>(null, e.getMessage(), false);
+        }
+
+        return new ApiResponse<>(imageGallery, null, true);
+    }
+
     @GetMapping("/names/{nameId}/slider")
     @ApiOperation("Images of a name as slider with details")
     ApiResponse<ImageGallery> fetchImagesOfNameAsSliderWithDetails(
