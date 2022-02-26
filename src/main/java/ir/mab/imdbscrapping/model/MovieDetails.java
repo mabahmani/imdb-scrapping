@@ -374,6 +374,7 @@ public class MovieDetails {
     public static class Photo {
         String thumbnail;
         String original;
+        String id;
 
         public String getThumbnail() {
             return thumbnail;
@@ -389,6 +390,14 @@ public class MovieDetails {
 
         public void setOriginal(String original) {
             this.original = original;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
         }
     }
 

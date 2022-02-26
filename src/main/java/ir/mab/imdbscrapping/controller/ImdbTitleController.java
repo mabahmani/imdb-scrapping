@@ -808,6 +808,7 @@ public class ImdbTitleController {
                     MovieDetails.Photo photo = new MovieDetails.Photo();
                     photo.setOriginal(generateImage(element.getElementsByTag("img").attr("src"), 0, 0));
                     photo.setThumbnail(generateImage(element.getElementsByTag("img").attr("src"), 512, 512));
+                    photo.setId(extractImageId(element.getElementsByAttribute("href").toString()));
                     photos.add(photo);
                 } catch (Exception e) {
                     e.printStackTrace();
