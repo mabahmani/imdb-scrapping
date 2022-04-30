@@ -11,15 +11,14 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
-import org.apache.juli.logging.Log;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -323,8 +322,8 @@ public class ImdbHomeController {
             JSONObject pageProps = (JSONObject) props.get("pageProps");
             JSONObject urqlState = (JSONObject) pageProps.get("urqlState");
             JSONObject urqlStateNextKey = (JSONObject) urqlState.get(urqlState.keys().next());
-            JSONObject urqlStateNextKeyData = (JSONObject) urqlStateNextKey.get("data");
-            JSONObject boxOfficeWeekendChart = (JSONObject) urqlStateNextKeyData.get("boxOfficeWeekendChart");
+            org.json.simple.JSONObject urqlStateNextKeyData = (org.json.simple.JSONObject) new JSONParser().parse(urqlStateNextKey.getString("data"));
+            org.json.simple.JSONObject boxOfficeWeekendChart = (org.json.simple.JSONObject) urqlStateNextKeyData.get("boxOfficeWeekendChart");
 
             try {
                 boxOffice.setWeekendStartDate(boxOfficeWeekendChart.get("weekendStartDate").toString());
@@ -334,19 +333,19 @@ public class ImdbHomeController {
             }
 
             try {
-                JSONArray boxOfficeWeekendChartEntries = (JSONArray) boxOfficeWeekendChart.get("entries");
+                org.json.simple.JSONArray boxOfficeWeekendChartEntries = (org.json.simple.JSONArray) boxOfficeWeekendChart.get("entries");
 
                 List<Home.BoxOffice.Data> dataList = new ArrayList<>();
 
                 for (Object object : boxOfficeWeekendChartEntries) {
                     try {
-                        JSONObject jsonObject = (JSONObject) object;
-                        JSONObject weekendGross = (JSONObject) jsonObject.get("weekendGross");
-                        JSONObject title = (JSONObject) jsonObject.get("title");
+                        org.json.simple.JSONObject jsonObject = (org.json.simple.JSONObject) object;
+                        org.json.simple.JSONObject weekendGross = (org.json.simple.JSONObject) jsonObject.get("weekendGross");
+                        org.json.simple.JSONObject title = (org.json.simple.JSONObject) jsonObject.get("title");
                         try {
-                            JSONObject total = (JSONObject) weekendGross.get("total");
-                            JSONObject cinemas = (JSONObject) title.get("cinemas");
-                            JSONObject titleText = (JSONObject) title.get("titleText");
+                            org.json.simple.JSONObject total = (org.json.simple.JSONObject) weekendGross.get("total");
+                            org.json.simple.JSONObject cinemas = (org.json.simple.JSONObject) title.get("cinemas");
+                            org.json.simple.JSONObject titleText = (org.json.simple.JSONObject) title.get("titleText");
                             Home.BoxOffice.Data data = new Home.BoxOffice.Data();
                             try {
                                 data.setWeekendGross(Integer.valueOf(total.get("amount").toString()));
@@ -402,24 +401,26 @@ public class ImdbHomeController {
         List<Home.News> news = new ArrayList<>();
 
         try {
-            JSONObject props = (JSONObject) response.get("props");
-            JSONObject pageProps = (JSONObject) props.get("pageProps");
-            JSONObject urqlState = (JSONObject) pageProps.get("urqlState");
-            JSONObject urqlStateNextKey = (JSONObject) urqlState.get(urqlState.keys().next());
-            JSONObject urqlStateNextKeyData = (JSONObject) urqlStateNextKey.get("data");
-            JSONObject newsObject = (JSONObject) urqlStateNextKeyData.get("news");
+            JSONObject props = response.getJSONObject("props");
+            JSONObject pageProps = props.getJSONObject("pageProps");
+            JSONObject urqlState = pageProps.getJSONObject("urqlState");
+            JSONObject urqlStateNextKey = urqlState.getJSONObject(urqlState.keys().next());
+            org.json.simple.JSONObject urqlStateNextKeyData = (org.json.simple.JSONObject) new JSONParser().parse(urqlStateNextKey.getString("data"));
+            org.json.simple.JSONObject newsObject = (org.json.simple.JSONObject) urqlStateNextKeyData.get("news");
+
+            System.out.println(newsObject);
 
             try {
-                JSONArray newsObjectEdges = (JSONArray) newsObject.get("edges");
+                org.json.simple.JSONArray newsObjectEdges = (org.json.simple.JSONArray) newsObject.get("edges");
 
                 for (Object object : newsObjectEdges) {
                     try {
-                        JSONObject jsonObject = (JSONObject) object;
-                        JSONObject node = (JSONObject) jsonObject.get("node");
+                        org.json.simple.JSONObject jsonObject = (org.json.simple.JSONObject) object;
+                        org.json.simple.JSONObject node = (org.json.simple.JSONObject) jsonObject.get("node");
                         try {
-                            JSONObject image = (JSONObject) node.get("image");
-                            JSONObject articleTitle = (JSONObject) node.get("articleTitle");
-                            JSONObject source = (JSONObject) node.get("source");
+                            org.json.simple.JSONObject image = (org.json.simple.JSONObject) node.get("image");
+                            org.json.simple.JSONObject articleTitle = (org.json.simple.JSONObject) node.get("articleTitle");
+                            org.json.simple.JSONObject source = (org.json.simple.JSONObject) node.get("source");
 
                             Home.News newsModel = new Home.News();
 
@@ -444,7 +445,7 @@ public class ImdbHomeController {
                                 e.printStackTrace();
                             }
                             try {
-                                newsModel.setSource(((JSONObject) source.get("homepage")).get("label").toString());
+                                newsModel.setSource(((org.json.simple.JSONObject) source.get("homepage")).get("label").toString());
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
