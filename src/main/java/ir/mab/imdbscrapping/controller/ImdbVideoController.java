@@ -18,7 +18,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
+import static ir.mab.imdbscrapping.util.Utils.extractVideoId;
 import static ir.mab.imdbscrapping.util.Utils.generateImage;
 
 @RestController
@@ -31,10 +33,10 @@ public class ImdbVideoController {
         Video video = new Video();
         try {
             Document doc = Jsoup.connect(String.format(AppConstants.IMDB_VIDEO + "%s", videoId)).get();
-            Element iMDbVideoExperienceJSElement = extractIMDbVideoExperienceJS(doc);
-            extractVideoUrls(iMDbVideoExperienceJSElement, video);
-            extractVideoInfo(iMDbVideoExperienceJSElement, video);
-            extractRelatedVideos(iMDbVideoExperienceJSElement, video);
+            JSONObject json = getJsonResponse(doc);
+            extractVideoUrls(json, video);
+            extractVideoInfo(json, video);
+            extractRelatedVideos(doc, video);
 
         } catch (IOException e) {
             return new ApiResponse<>(null, e.getMessage(), false);
@@ -175,22 +177,21 @@ public class ImdbVideoController {
         return new ApiResponse<>(videoGallery, null, true);
     }
 
-    private void extractVideoUrls(Element element, Video video) {
+    private void extractVideoUrls(JSONObject json, Video video) {
         List<String> urls = new ArrayList<>();
         try {
-            String[] args = element.toString().split("args.push");
-            int sIndex = args[0].indexOf("\"playbackData\"");
-            int eIndex = args[0].indexOf(",\"videoInfoKey\"");
-            if (sIndex > -1) {
-                String[] els = args[0].substring(sIndex, eIndex).split("\"");
-                for (String s : els) {
-                    if (s.startsWith("https://imdb-video.media-imdb.com") && s.contains(".mp4")) {
-                        urls.add(s.substring(0, s.length() - 1));
-                    }
+            JSONArray playbackUrls = json.getJSONArray("playbackURLs");
+
+            for (int i=0; i<playbackUrls.length(); i++ ){
+                if (playbackUrls.getJSONObject(i).getString("mimeType").equals("video/mp4") || playbackUrls.getJSONObject(i).getString("url").contains("mp4")){
+                    urls.add(playbackUrls.getJSONObject(i).getString("url"));
                 }
             }
+
+            video.setPlaybackUrls(urls);
         } catch (Exception e) {
             e.printStackTrace();
+            video.setPlaybackUrls(urls);
         }
 
         try {
@@ -199,7 +200,7 @@ public class ImdbVideoController {
             e.printStackTrace();
         }
         try {
-            video.setLowQ(urls.get(1));
+            video.setLowQ(urls.get(urls.size() - 1));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -209,59 +210,45 @@ public class ImdbVideoController {
         List<Video.RelatedVideo> relatedVideos = new ArrayList<>();
 
         try {
-            String[] args = element.toString().split("args.push");
-            String trimArg = args[1].trim();
-            String result = trimArg.substring(1, trimArg.length() - 2);
 
+            Element relatedVideoElement = element.getElementsByAttributeValue("data-testid","related-videos").first();
 
-            try {
-                JSONObject response = new JSONObject(result);
-                JSONObject videoList = (JSONObject) response.get("VIDEO_LIST");
-                Iterator<String> keys = videoList.keys();
-                JSONObject videoListObject = videoList.getJSONObject(keys.next());
-                JSONArray videoListArray = videoListObject.getJSONArray("videoList");
+            for (Element item : Objects.requireNonNull(relatedVideoElement).getElementsByClass("ipc-slate-card")){
+                Video.RelatedVideo relatedVideo = new Video.RelatedVideo();
 
-                for (Object o : videoListArray) {
-                    JSONObject videoListItem = (JSONObject) o;
-                    Video.RelatedVideo relatedVideo = new Video.RelatedVideo();
-                    try {
-                        relatedVideo.setVideoId(videoListItem.getJSONObject("videoId").getString("value"));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        relatedVideo.setTitle(videoListItem.getString("videoTitle"));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        relatedVideo.setDuration(videoListItem.getString("videoRuntime"));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        relatedVideo.setCover(videoListItem.getJSONObject("videoSlate").getString("source"));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        relatedVideo.setSubtitle(videoListItem.getString("relationText"));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        relatedVideo.setTitleId(videoListItem.getString("relationId"));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-
-                    relatedVideos.add(relatedVideo);
+                try {
+                    relatedVideo.setVideoId(extractVideoId(item.getElementsByClass("ipc-slate-card__title").attr("href")));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                try {
+                    relatedVideo.setTitle(item.getElementsByClass("ipc-slate-card__title-text").text());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                try {
+                    relatedVideo.setDuration(item.getElementsByClass("ipc-lockup-overlay__text").text());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                try {
+                    relatedVideo.setCover(item.getElementsByClass("ipc-media").first().getElementsByTag("img").attr("srcset"));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                try {
+                    relatedVideo.setSubtitle(item.getElementsByClass("ipc-slate-card__subtitle2").text());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                try {
+                    //relatedVideo.setTitleId(videoListItem.getString("relationId"));
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
 
-            } catch (Exception e) {
-                e.printStackTrace();
+                relatedVideos.add(relatedVideo);
             }
-
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -270,151 +257,115 @@ public class ImdbVideoController {
         video.setRelatedVideos(relatedVideos);
     }
 
-    private void extractVideoInfo(Element element, Video video) {
+    private void extractVideoInfo(JSONObject json, Video video) {
 
         try {
-            String[] args = element.toString().split("args.push");
-            String trimArg = args[1].trim();
-            String result = trimArg.substring(1, trimArg.length() - 2);
+            video.setVideoCover(json.getJSONObject("thumbnail").getString("url"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            video.setVideoDescription(json.getJSONObject("description").getString("value"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            int seconds = json.getJSONObject("runtime").getInt("value");
+            video.setVideoRuntime(String.format("%d:%02d", seconds/60, seconds%60));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            video.setVideoSubTitle(json.getJSONObject("name").getString("value"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            video.setVideoTitle(json.getJSONObject("name").getString("value"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-
+        try {
+            JSONObject primaryTitle = json.getJSONObject("primaryTitle");
             try {
-                JSONObject response = new JSONObject(result);
-                JSONObject videoInfo = (JSONObject) response.get("VIDEO_INFO");
-                Iterator<String> keys = videoInfo.keys();
-                JSONObject videoInfoObject = videoInfo.getJSONArray(keys.next()).getJSONObject(0);
-
-                try {
-                    video.setVideoCover(videoInfoObject.getJSONObject("videoSlate").getString("source"));
-                } catch (Exception e) {
-                    e.printStackTrace();
+                List<String> genres = new ArrayList<>();
+                for (Object genre : primaryTitle.getJSONObject("genres").getJSONArray("genres")) {
+                    genres.add(((JSONObject) genre).getString("text"));
                 }
-                try {
-                    video.setVideoDescription(videoInfoObject.getString("videoDescription"));
+                video.setRelationGenres(genres);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            try {
+                video.setTitleId(primaryTitle.getString("id"));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            try {
+                video.setRelationPoster(primaryTitle.getJSONObject("primaryImage").getString("url"));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            try {
+                video.setRelationIMDbRating(primaryTitle.getJSONObject("ratingsSummary").getDouble("aggregateRating"));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            try {
+                video.setRelationIsIMDbTVTitle(primaryTitle.getJSONObject("titleType").getString("id").equals("tvSeries"));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            try {
+                video.setRelationIsReleased(primaryTitle.getJSONObject("canRate").getBoolean("isRatable"));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            try {
+                video.setRelationCertificateRatingsBody(primaryTitle.getJSONObject("certificate").getString("rating"));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            try {
+                video.setRelationCertificateRating(primaryTitle.getJSONObject("certificate").getString("rating"));
 
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                try {
-                    video.setVideoRuntime(videoInfoObject.getString("videoRuntime"));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                try {
-                    video.setVideoSubTitle(videoInfoObject.getString("videoSubTitle"));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                try {
-                    video.setVideoTitle(videoInfoObject.getString("videoTitle"));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            try {
+                int seconds = primaryTitle.getJSONObject("runtime").getInt("seconds");
+                video.setRelationRuntime(String.format("%d:%02d", seconds/60, seconds%60));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            try {
+                video.setRelationReleaseYear(String.valueOf(primaryTitle.getJSONObject("releaseYear").getInt("year")));
 
-                try {
-                    JSONObject relatedTitleInfoModelObject = videoInfoObject.getJSONObject("relatedTitleInfoModel");
-                    try {
-                        List<String> genres = new ArrayList<>();
-                        for (Object genre : relatedTitleInfoModelObject.getJSONArray("relationGenres")) {
-                            genres.add(genre.toString());
-                        }
-                        video.setRelationGenres(genres);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        video.setTitleId(relatedTitleInfoModelObject.getJSONObject("relationTitleId").getString("value"));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            try {
+                video.setRelationReleaseDate(String.valueOf(primaryTitle.getJSONObject("releaseYear").getInt("year")));
 
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        video.setRelationPoster(relatedTitleInfoModelObject.getJSONObject("relationPoster").getString("source"));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        video.setRelationIMDbRating(relatedTitleInfoModelObject.getDouble("relationIMDbRating"));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        video.setRelationIsIMDbTVTitle(relatedTitleInfoModelObject.getBoolean("relationIsIMDbTVTitle"));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        video.setRelationIsReleased(relatedTitleInfoModelObject.getBoolean("relationIsReleased"));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        video.setRelationCertificateRatingsBody(relatedTitleInfoModelObject.getString("relationCertificateRatingsBody"));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        video.setRelationCertificateRating(relatedTitleInfoModelObject.getString("relationCertificateRating"));
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        video.setRelationRuntime(relatedTitleInfoModelObject.getString("relationRuntime"));
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        video.setRelationReleaseYear(relatedTitleInfoModelObject.getString("relationReleaseYear"));
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        video.setRelationReleaseDate(relatedTitleInfoModelObject.getString("relationReleaseDate"));
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        video.setRelationTitle(relatedTitleInfoModelObject.getString("relationTitle"));
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            try {
+                video.setRelationTitle(primaryTitle.getJSONObject("originalTitleText").getString("text"));
 
             } catch (Exception e) {
                 e.printStackTrace();
             }
 
-
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
-    private Element extractIMDbVideoExperienceJS(Document doc) {
-        Element result = null;
-        try {
-            Elements elements = doc.select("[type=text/javascript]");
-            for (Element element : elements) {
-                if (element.toString().contains("IMDbVideoExperienceJS")) {
-                    result = element;
-                    break;
-                }
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return result;
+    private JSONObject getJsonResponse(Document doc) {
+        String json = doc.getElementsByAttributeValue("id", "__NEXT_DATA__").get(0).data();
+        return new JSONObject(json).getJSONObject("props").getJSONObject("pageProps").getJSONObject("videoPlaybackData").getJSONObject("video");
     }
 
 }

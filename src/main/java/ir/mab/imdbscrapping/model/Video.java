@@ -23,6 +23,7 @@ public class Video {
     Boolean relationIsIMDbTVTitle;
     List<String> relationGenres;
     List<RelatedVideo> relatedVideos;
+    List<String> playbackUrls;
 
     public String getVideoTitle() {
         return videoTitle;
@@ -182,6 +183,14 @@ public class Video {
 
     public void setRelatedVideos(List<RelatedVideo> relatedVideos) {
         this.relatedVideos = relatedVideos;
+    }
+
+    public List<String> getPlaybackUrls() {
+        return playbackUrls;
+    }
+
+    public void setPlaybackUrls(List<String> playbackUrls) {
+        this.playbackUrls = playbackUrls;
     }
 
     public static class RelatedVideo{
